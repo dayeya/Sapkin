@@ -1,3 +1,4 @@
+import pickle
 from Protocol.docs import Document
 from socket import *
 
@@ -27,17 +28,16 @@ class Module:
         # Socket for regular communication.
         self.client_sock = socket(AF_INET, SOCK_STREAM)
 
-    def recieve(self) -> str:
+    def recieve(self) -> Document:
         """
         Recieves data from the server.
 
         Returns:
             bytes: bytes representation of the sent data.
         """
-        data: bytes = b''
         
-        data = self.server_sock.recv(Module.BUFSIZE)
-        if not data:
+        data = pickle.loads(self.server_sock.recv(Module.BUFSIZE))
+        if not data or not isinstance(data, Document):
             raise Exception("Connection with the server has timed out.")
         
         # if data was bigger than BUFFER_SIZE
@@ -48,7 +48,7 @@ class Module:
                 except: 
                     break
         
-        return data.decode(Module.UTF)
+        return data
     
     def send_data(self) -> None:
         """
