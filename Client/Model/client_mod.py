@@ -1,9 +1,10 @@
 from socket import *
 
 
-
 class Client_Model:
-    """server ip address and port
+    
+    """
+    server ip address and port
     """
     UTF = "utf-8"
     HOST = '192.168.1.147'
@@ -11,7 +12,8 @@ class Client_Model:
     BUFFER_SIZE = 1024
 
     def __init__(self)->None:
-        """creates the client-server socket and the client-client socket
+        """
+        creates the client-server socket and the client-client socket
         """
         self.server_sock = socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_sock.connect((Client_Model.HOST, Client_Model.PORT))
