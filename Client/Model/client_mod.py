@@ -1,3 +1,4 @@
+from Protocol.docs import Document
 from socket import *
 
 ADDRESS = ('192.168.1.218', 60000)
@@ -63,7 +64,7 @@ class Module:
                 break
             
             # Send encoded request.
-            encoded_msg: bytes = self.encode(client_msg)
+            encoded_msg: bytes = Document(client_msg).serialize()
             self.server_sock.send(encoded_msg)
             
             data = self.recieve()
