@@ -1,7 +1,7 @@
 from socket import *
 from threading import Thread
 
-class Server:
+class Module:
     
     UTF = "utf-8"
     BUFSIZE = 1024
@@ -9,18 +9,22 @@ class Server:
     ADDRESS = ("192.168.1.218", 60000)
     
     def __init__(self) -> None:
+        
+        print(f'[+] Module initialized!')
+        
         """
-        Server Object.
+        Server module Object.
         """
         self.main_sock = socket(AF_INET, SOCK_STREAM)
         
     def start(self) -> None:
         """
-        Starts the server, listening to Sapkin clients.
+        Starts the server, listening to clients.
         """
-        self.main_sock.bind(Server.ADDRESS)
-        self.main_sock.listen(Server.ONLINE_CLIENT_BOUND)
+        self.main_sock.bind(Module.ADDRESS)
+        self.main_sock.listen(Module.ONLINE_CLIENT_BOUND)
         
+        print(f"[+] Server is up!")
         while True:
             
             # SERVER_SOCK of client.
@@ -33,16 +37,17 @@ class Server:
 
     def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
         """
-
         Handles FingerPrinter client, 
         
         Args:
             fp_client_sock (socket): Clients socket for requests.
             addr (tuple): Clients sock address.
         """
+        
+        print(f'[+] New client at: {addr}')
         while True:
             
-            req = fp_client_sock.recv(Server.BUFSIZE).decode(Server.UTF)
+            req = fp_client_sock.recv(Module.BUFSIZE).decode(Module.UTF)
             if not req:
                 break
             
@@ -50,10 +55,8 @@ class Server:
             
         fp_client_sock.close()
         
-        
     def encode(self, str) -> bytes:
         """
-        
         Returns an encoded representation of str.
 
         Args:
@@ -62,5 +65,5 @@ class Server:
         Returns:
             bytes: encoded bytes from str.
         """
-             
-        return str.encode(Server.UTF)    
+        
+        return str.encode(Module.UTF)
