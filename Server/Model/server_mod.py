@@ -1,5 +1,7 @@
 from socket import *
 from threading import Thread
+import pickle
+from Protocol.docs import Document
 
 class Module:
     
@@ -15,6 +17,7 @@ class Module:
         """
         Server module Object.
         """
+        self.clients = []
         self.main_sock = socket(AF_INET, SOCK_STREAM)
         
     def start(self) -> None:
@@ -29,10 +32,11 @@ class Module:
             
             # SERVER_SOCK of client.
             fp_server_sock, addr = self.main_sock.accept()
-            
             # connection with the SERVER_SOCK of the client.
+            self.clients.append(addr)
             fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
+
             
 
     def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
@@ -47,11 +51,16 @@ class Module:
         print(f'[+] New client at: {addr}')
         while True:
             
-            req = fp_client_sock.recv(Module.BUFSIZE).decode(Module.UTF)
-            if not req:
+            req = pickle.load(fp_client_sock.recv(Module.BUFSIZE))
+            if not req or not isinstance(req, Document):
                 break
-            
-            fp_client_sock.send(self.encode(f"Echoed - {req}"))
+            if req.doc["type"] == "get all IP".upper():
+                """
+                sends all the connected ip addresses to a client
+                """
+                response = Document("get IP", self.clients).serialize()
+                fp_client_sock.send(response)
+            #fp_client_sock.send(self.encode(f"Echoed - {req}"))
             
         fp_client_sock.close()
         
