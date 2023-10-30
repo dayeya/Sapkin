@@ -5,7 +5,6 @@ class Document:
     
     def __init__(self, req_type: str) -> None:
         """
-        
         Creates a Doc object.
 
         Args:
@@ -15,7 +14,7 @@ class Document:
         
     def serialize(self) -> bytes:
         """
-        Returns serialized represenation of the document.
+        Returns serialized representation of the document.
 
         Returns:
             bytes: serialized 'seld.doc'
@@ -26,7 +25,7 @@ class Document:
         
     def serialize(self) -> bytes:
         """
-        Returns serialized represenation of the document.
+        Returns serialized representation of the document.
 
         Returns:
             bytes: serialized 'seld.doc'
