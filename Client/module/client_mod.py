@@ -1,5 +1,5 @@
 import pickle
-from Protocol.docs import Document
+from common import Document
 from socket import *
 
 ADDRESS = ('192.168.1.218', 60000)

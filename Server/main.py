@@ -1,4 +1,4 @@
-from module.server_mod import Module
+from module import Module
 
 
 class Server(Module):

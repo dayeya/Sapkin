@@ -4,10 +4,11 @@ class Document:
     
     def __init__(self, req_type: str=None, payload: list=None) -> None:
         """
-        Creates a doc object.
+        Creates a document, as a method of communication.
 
         Args:
-            req_type (str): request type for server.
+            req_type (str, optional): Type of request. Defaults to None.
+            payload (list, optional): Payload of response. Defaults to None.
         """
         self._type = req_type
         self._payload = payload
@@ -30,10 +31,10 @@ class Document:
     
     def serialize(self) -> bytes:
         """
-        Serializes 'self'.
-
+        Serializes a document.
+        
         Returns:
-            bytes: serialized 'self.doc'
+            bytes: serialized self
         """
         return pickle.dumps(self)
         

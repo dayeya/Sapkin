@@ -1,7 +1,7 @@
 import pickle
 from socket import *
 from threading import Thread
-from docs import Document
+from common import Document
 
 
 class Module:
@@ -54,8 +54,10 @@ class Module:
             
             # Document asks for all online FP clients.
             if req.type == "ALL USERS":
-                response = Document("USERS", self.clients).serialize()
-                fp_client_sock.send(response)
+                response = Document("USERS", self.clients)
+                print(f'[+] Crafted Document: {response}')
+                
+                fp_client_sock.send(response.serialize())
                 
             else:
                 fp_client_sock.send(self.encode(f"Echoed - {req}"))
@@ -64,7 +66,7 @@ class Module:
     
     def add_client(self, client_addr: tuple) -> None:
         """
-        Adds 'client_addr' to online clients.
+        Adds client_addr to online clients.
 
         Args:
             client_addr (tuple): clients address.
