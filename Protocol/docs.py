@@ -2,31 +2,31 @@ import pickle
 
 class Document:
     
-    TYPE = 'rtype'
-    PAYLOAD = 'payload'
-    
-    def __init__(self, req_type: str, payload: list=None) -> None:
+    def __init__(self, req_type: str=None, payload: list=None) -> None:
         """
         Creates a doc object.
 
         Args:
             req_type (str): request type for server.
         """
-        self.type = {"rtype": req_type, **({"payload": payload} if payload else {})}
+        self._type = req_type
+        self._payload = payload
     
-    def get_type(self) -> str:
+    @property
+    def type(self) -> str:
         """
         Returns:
-            str: selfs type.
+            str: type if there is one, else None.
         """
-        return self.type
+        return self._type
     
-    def get_payload(self) -> list:
+    @property
+    def payload(self) -> list:
         """
         Returns:
-            str: selfs payload if there exists.
+            list: payload if there is one, else None.
         """
-        return self.payload
+        return self._payload
     
     def serialize(self) -> bytes:
         """
@@ -44,4 +44,4 @@ class Document:
         Returns:
             str: represenation of the document.
         """
-        return f'Document: type = {self.get_type()}\n' + f'paylod = {self.get_payload()}'
+        return f'Document: type = {self.type}\n' + f'paylod = {self.payload}'

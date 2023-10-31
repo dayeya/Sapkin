@@ -56,7 +56,7 @@ class Module:
                 break
             
             # Document asks for all online FP clients.
-            if req.doc["type"] == "ALL USERS".upper():
+            if req.type == "ALL USERS":
                 response = Document("USERS", self.clients).serialize()
                 fp_client_sock.send(response)
                 
