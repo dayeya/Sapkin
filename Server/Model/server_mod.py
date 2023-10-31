@@ -1,7 +1,8 @@
+import pickle
 from socket import *
 from threading import Thread
-import pickle
-from Protocol.docs import Document
+from Protocol import Document
+
 
 class Module:
     
@@ -32,12 +33,11 @@ class Module:
             
             # SERVER_SOCK of client.
             fp_server_sock, addr = self.main_sock.accept()
+            
             # connection with the SERVER_SOCK of the client.
-            self.clients.append(addr)
+            self.add_client(addr)
             fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
-
-            
 
     def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
         """
@@ -51,28 +51,38 @@ class Module:
         print(f'[+] New client at: {addr}')
         while True:
             
-            req = pickle.load(fp_client_sock.recv(Module.BUFSIZE))
+            req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
             if not req or not isinstance(req, Document):
                 break
-            if req.doc["type"] == "get all IP".upper():
-                """
-                sends all the connected ip addresses to a client
-                """
-                response = Document("get IP", self.clients).serialize()
+            
+            # Document asks for all online FP clients.
+            if req.doc["type"] == "ALL USERS".upper():
+                response = Document("USERS", self.clients).serialize()
                 fp_client_sock.send(response)
-            #fp_client_sock.send(self.encode(f"Echoed - {req}"))
+                
+            else:
+                fp_client_sock.send(self.encode(f"Echoed - {req}"))
             
         fp_client_sock.close()
-        
-    def encode(self, str) -> bytes:
+    
+    def add_client(self, client_addr: tuple) -> None:
         """
-        Returns an encoded representation of str.
+        Adds 'client_addr' to online clients.
 
         Args:
-            str (_type_): str to encode.
+            client_addr (tuple): clients address.
+        """
+        self.clients.append(client_addr)
+    
+    def encode(self, data: str) -> bytes:
+        """
+        Returns an encoded representation of data.
+
+        Args:
+            data (str) to encode.
 
         Returns:
-            bytes: encoded bytes from str.
+            bytes: encoded bytes from data.
         """
         
         return str.encode(Module.UTF)

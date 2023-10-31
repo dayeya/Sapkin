@@ -1,35 +1,33 @@
 import pickle
 
-
 class Document:
+    
+    TYPE = 'type'
+    PAYLOAD = 'payload'
     
     def __init__(self, req_type: str, payload: str=None) -> None:
         """
-        Creates a Doc object.
+        Creates a doc object.
 
         Args:
             req_type (str): request type for server.
         """
-        self.doc = {"type": req_type, **({"payload": payload} if payload else {})}
+        self.doc = {"rtype": req_type, **({"payload": payload} if payload else {})}
         
     def serialize(self) -> bytes:
         """
-        Returns serialized represenation of the document.
+        Serializes 'self'.
 
         Returns:
             bytes: serialized 'self.doc'
         """
-        return pickle.dumps(
-            self
-        )
+        return pickle.dumps(self)
         
-    def deserialize(self) -> bytes:
+    def __str__(self) -> str:
         """
-        Returns serialized represenation of the document.
+        When printing docs, __str__ will be called and return a comfortable string.
 
         Returns:
-            bytes: deserialized 'self.doc'
+            str: represenation of the document.
         """
-        return pickle.loads(
-            self
-        )
+        return f'Document: type = {self.doc[Document.TYPE]}\n' + f'paylod = {self.doc[Document.PAYLOAD]}'

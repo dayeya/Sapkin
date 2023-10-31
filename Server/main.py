@@ -5,12 +5,15 @@ class Server(Module):
     
     def __init__(self) -> None:
         """
-        Creates Server object.
+        Creates Server object, initializes its module.
         """
-            
-        # init module.
         super().__init__()
 
+    def clone_server(self) -> None:
+        """
+        Closes the server.
+        """
+        self.main_sock.close()
 
 if __name__ == "__main__":
     server = Server()
