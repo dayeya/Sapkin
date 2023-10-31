@@ -1,4 +1,4 @@
-from Model.server_mod import Module
+from module.server_mod import Module
 
 
 class Server(Module):
@@ -9,11 +9,12 @@ class Server(Module):
         """
         super().__init__()
 
-    def clone_server(self) -> None:
+    def close_server(self) -> None:
         """
         Closes the server.
         """
         self.main_sock.close()
+
 
 if __name__ == "__main__":
     server = Server()

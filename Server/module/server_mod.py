@@ -1,7 +1,7 @@
 import pickle
 from socket import *
 from threading import Thread
-from Protocol import Document
+from docs import Document
 
 
 class Module:
@@ -12,9 +12,6 @@ class Module:
     ADDRESS = ("192.168.1.218", 60000)
     
     def __init__(self) -> None:
-        
-        print(f'[+] Module initialized!')
-        
         """
         Server module Object.
         """
