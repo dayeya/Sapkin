@@ -2,7 +2,7 @@ import pickle
 
 class Document:
     
-    TYPE = 'type'
+    TYPE = 'rtype'
     PAYLOAD = 'payload'
     
     def __init__(self, req_type: str, payload: str=None) -> None:
