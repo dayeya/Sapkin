@@ -1,10 +1,10 @@
-from Model.client_mod import Module
+from module import Module
 
 class Client:
     
-    def __init__(self, module):
-        self.module = module
-        
+    def __init__(self, mod):
+        self.module = mod
+
     def start(self):
         
         """

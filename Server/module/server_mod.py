@@ -1,6 +1,7 @@
 import pickle
 from socket import *
 from threading import Thread
+
 from common import Document
 
 
@@ -9,7 +10,7 @@ class Module:
     UTF = "utf-8"
     BUFSIZE = 1024
     ONLINE_CLIENT_BOUND = 5
-    ADDRESS = ("192.168.1.218", 60000)
+    ADDRESS = ('192.168.1.218', 60000)
     
     def __init__(self) -> None:
         """

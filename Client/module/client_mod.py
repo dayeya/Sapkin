@@ -28,16 +28,16 @@ class Module:
         # Socket for regular communication.
         self.client_sock = socket(AF_INET, SOCK_STREAM)
 
-    def recieve(self) -> Document:
+    def receive(self) -> Document:
         """
-        Recieves data from the server.
+        Receives data from the server.
 
         Returns:
-            bytes: bytes representation of the sent data.
+            bytes: bytes representation of the received data.
         """
         
-        data = pickle.loads(self.server_sock.recv(Module.BUFSIZE))
-        if not data or not isinstance(data, Document):
+        data = self.server_sock.recv(Module.BUFSIZE)
+        if not data:
             raise Exception("Connection with the server has timed out.")
         
         # if data was bigger than BUFFER_SIZE
@@ -47,7 +47,11 @@ class Module:
                     data += self.server_sock.recv(Module.BUFSIZE)
                 except: 
                     break
-        
+
+        data = pickle.loads(data)
+        if not isinstance(data, Document):
+            raise Exception("Wasn't given a document, please try again!")
+
         return data
     
     def send_data(self) -> None:
@@ -67,21 +71,22 @@ class Module:
             encoded_msg: bytes = Document(client_msg).serialize()
             self.server_sock.send(encoded_msg)
             
-            data = self.recieve()
+            data = self.receive()
             print(f"[+] {data}")
-            
-    def encode(self, str) -> bytes:
+
+    @staticmethod
+    def encode(data: str) -> bytes:
         """
-        Returns an encoded representation of str.
+        Returns an encoded representation of data.
 
         Args:
-            str (_type_): str to encode.
+            data (str): data to encode.
 
         Returns:
             bytes: encoded bytes from str.
         """
              
-        return str.encode(Module.UTF)   
+        return data.encode(Module.UTF)
 
 
 
