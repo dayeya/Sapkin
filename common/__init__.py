@@ -1,1 +1,1 @@
-from .doc import Document
+from .document import Document
