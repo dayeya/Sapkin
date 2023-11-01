@@ -61,10 +61,8 @@ class Module:
                 fp_client_sock.send(response.serialize())
             elif req.type.upper() == "SCAN":
                 client_address = str(fp_client_sock.getsockname()[0])
-                print(client_address)
-                open_ports = self.scan_client_ports(client_address, 1, 60000)
-                print(open_ports)
-                fp_client_sock.send(Document("Ports", open_ports)).serialize()
+                open_ports = self.scan_client_ports(client_address, 60000, 60005)
+                fp_client_sock.send(Document("Ports", open_ports).serialize())
             else:
                 fp_client_sock.send(Document(f"Echoed - {req}").serialize())
             
@@ -102,9 +100,9 @@ class Module:
             a bool that indicates if a specific client's  certain port is open
         """
         try:
-            sock.connect(client_addr, port_num)
+            sock.connect((client_addr, port_num))
             return True
-        except (socket.timeout, ConnectionRefusedError):
+        except Exception as e:
             return False
 
     def scan_client_ports(self, client_addr, start, end) -> list:
