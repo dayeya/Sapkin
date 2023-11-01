@@ -1,15 +1,15 @@
 import pickle
+from typing import Any
+from commands import MSG
 
 
 class Document:
 
-    def __init__(self, req_type: str = None, payload: list = None) -> None:
+    def __init__(self, req_type: str = MSG, payload: Any = None) -> None:
         """
-        Creates a document, as a method of communication.
-
-        Args:
-            req_type (str, optional): Type of request. Defaults to None.
-            payload (list, optional): Payload of response. Defaults to None.
+        Document object.
+        :param req_type: Defaults to none
+        :param payload: Defaults to none
         """
         self._type = req_type
         self._payload = payload
@@ -17,34 +17,30 @@ class Document:
     @property
     def type(self) -> str:
         """
-        Returns:
-            str: type if there is one, else None.
+        Getter for _type
+        :return: type of self
         """
         return self._type
 
     @property
-    def payload(self) -> list:
+    def payload(self) -> Any:
         """
-        Returns:
-            list: payload if there is one, else None.
+        Getter for _payload
+        :return: payload of self
         """
         return self._payload
 
     def serialize(self) -> bytes:
         """
-        Serializes a document.
-
-        Returns:
-            bytes: serialized self
+        Serializes self into bytes.
+        :return: bytes of self
         """
         return pickle.dumps(self)
 
     def __str__(self) -> str:
         """
-        When printing docs, __str__ will be called and return a comfortable string.
-
-        Returns:
-            str: representation of the document.
+        Useful for debugging.
+        :return: str representation of self
         """
         return f'Document: type = {self.type}\n' + f'payload = {self.payload}'
 

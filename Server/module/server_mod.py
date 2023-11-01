@@ -1,20 +1,23 @@
 import pickle
+import socket
 from socket import *
+from commands import *
+from common import Document
 from threading import Thread
 
-from Sapkin_Finger_Printer.common import *
+ADDRESS = ('192.168.1.218', 60000)
 
 
 class Module:
     
     UTF = "utf-8"
     BUFSIZE = 1024
+    MAX_PORTS = 65535
     ONLINE_CLIENT_BOUND = 5
-    ADDRESS = ('192.168.1.147', 60000)
     
     def __init__(self) -> None:
         """
-        Server module Object.
+        Server Modules object.
         """
         self.clients = []
         self.main_sock = socket(AF_INET, SOCK_STREAM)
@@ -23,7 +26,7 @@ class Module:
         """
         Starts the server, listening to clients.
         """
-        self.main_sock.bind(Module.ADDRESS)
+        self.main_sock.bind(ADDRESS)
         self.main_sock.listen(Module.ONLINE_CLIENT_BOUND)
         
         print(f"[+] Server is up!")
@@ -39,87 +42,71 @@ class Module:
 
     def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
         """
-        Handles FingerPrinter client, 
-        
-        Args:
-            fp_client_sock (socket): Clients socket for requests.
-            addr (tuple): Clients sock address.
+        Handles the connections of a client.
+        :param fp_client_sock:
+        :param addr:
+        :return: None
         """
-        
-        print(f'[+] New client at: {addr}')
+        response: bytes = b''
         while True:
-            
             req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
             if not req or not isinstance(req, Document):
                 break
-            
-            # Document asks for all online FP clients.
-            if req.type == "ALL USERS":
-                response = Document("USERS", self.clients)
-                print(f'[+] Crafted Document: {response}')
-                
-                fp_client_sock.send(response.serialize())
-            elif req.type.upper() == "SCAN":
-                client_address = str(fp_client_sock.getsockname()[0])
-                print(client_address)
-                open_ports = self.scan_client_ports(client_address, 1, 60000)
-                print(open_ports)
-                fp_client_sock.send(Document("Ports", open_ports)).serialize()
+
+            if req.type.upper() == ALL_USERS:
+                response = Document(USERS, self.clients).serialize()
+                fp_client_sock.send(response)
+
+            elif req.type.upper() == SCAN:
+                addr = str(fp_client_sock.getsockname()[0])
+                client_open_ports = self.scan_client_ports(addr)
+                response = Document(PORTS, client_open_ports).serialize()
+                fp_client_sock.send(response)
+
             else:
-                fp_client_sock.send(Document(f"Echoed - {req}").serialize())
+                response = Document(ECHO, f"Echoed! {req.payload}").serialize()
+                fp_client_sock.send(response)
             
         fp_client_sock.close()
     
     def add_client(self, client_addr: tuple) -> None:
         """
-        Adds client_addr to online clients.
-
-        Args:
-            client_addr (tuple): clients address.
+        Adds clients into online_clients.
+        :param client_addr:
+        :return: None
         """
         self.clients.append(client_addr)
-    
-    def encode(self, data: str) -> bytes:
+
+    @staticmethod
+    def check_port(client_addr, port, sock) -> bool:
         """
-        Returns an encoded representation of data.
-
-        Args:
-            data (str) to encode.
-
-        Returns:
-            bytes: encoded bytes from data.
-        """
-        
-        return str.encode(Module.UTF)
-
-    def is_port_open(self, client_addr, port_num, sock) -> bool:
-        """
-
-        Args:
-            client_addr, port, sock:
-
-        Returns:
-            a bool that indicates if a specific client's  certain port is open
+        Checks if a port is open.
+        :param client_addr:
+        :param port:
+        :param sock:
+        :return: a bool that indicates if a specific client's  certain port is open
         """
         try:
-            sock.connect(client_addr, port_num)
+            addr = client_addr, port
+            sock.connect(addr)
             return True
-        except (socket.timeout, ConnectionRefusedError):
+        except (Exception, ConnectionRefusedError) as e:
+            print(f'[!] Error: {e}')
             return False
 
-    def scan_client_ports(self, client_addr, start, end) -> list:
+    def scan_client_ports(self, client_addr, initial_port=1, last_port=MAX_PORTS) -> list:
         """
-
-        Args:
-            client_addr, start, end:
-
-        Returns:
-            a list of all the open ports of a specific client between port numbers "start" and "end"
+        Scan the clients open ports from initial_port ot end.
+        :param client_addr:
+        :param initial_port:
+        :param last_port:
+        :return: A list of all open ports between initial_port and last_port
         """
         open_ports = []
         scan_sock = socket(AF_INET, SOCK_STREAM)
-        for i in range(start, end + 1):
-            if self.is_port_open(client_addr, i, scan_sock):
-                open_ports.append(i)
+        for port in range(initial_port, last_port + 1):
+            if self.check_port(client_addr, port, scan_sock):
+                open_ports.append(port)
+
         scan_sock.close()
         return open_ports

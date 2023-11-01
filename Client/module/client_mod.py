@@ -1,8 +1,10 @@
 import pickle
-from Sapkin_Finger_Printer.common import *
 from socket import *
+from commands import *
+from common import Document
 
-ADDRESS = ('192.168.1.147', 60000)
+ADDRESS = ('192.168.1.218', 60000)
+
 
 class Module:
     
@@ -18,7 +20,7 @@ class Module:
 
     def __init__(self) -> None:
         """
-        Client_Module Object.
+        Client Module object.
         """
         
         # Server sock, sends requests to the SERVER.
@@ -31,9 +33,7 @@ class Module:
     def receive(self) -> Document:
         """
         Receives data from the server.
-
-        Returns:
-            bytes: bytes representation of the received data.
+        :return: Document.
         """
         
         data = self.server_sock.recv(Module.BUFSIZE)
@@ -56,36 +56,40 @@ class Module:
     
     def send_data(self) -> None:
         """
-        Send requests to the server.
+        Handles the clients' communication with the server.
+        :return: None
         """
         
         print("[+] Connected to server!\n")
         while True:
-            client_msg = input("Type: ")
-            
-            # Stop program when typing STOP / stop.
-            if client_msg.upper() == "STOP":
+            request = ''
+            client_msg = input("Type: ").upper()
+
+            if client_msg == STOP:
                 break
-            
-            # Send encoded request.
-            encoded_msg: bytes = Document(client_msg).serialize()
-            self.server_sock.send(encoded_msg)
+
+            elif client_msg == ALL_USERS:
+                request = ALL_USERS
+
+            elif client_msg == SCAN:
+                request = SCAN
+
+            else:
+                request = MSG
+
+            encoded_req: bytes = Document(request, client_msg).serialize()
+            self.server_sock.send(encoded_req)
             
             data = self.receive()
-            print(f"[+] {data}")
+            print(f"[+] {data.payload}")
 
     @staticmethod
     def encode(data: str) -> bytes:
         """
-        Returns an encoded representation of data.
-
-        Args:
-            data (str): data to encode.
-
-        Returns:
-            bytes: encoded bytes from str.
+        Encodes data into bytes
+        :param data:
+        :return: bytes representation of data.
         """
-             
         return data.encode(Module.UTF)
 
 
