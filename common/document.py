@@ -1,8 +1,9 @@
 import pickle
 
+
 class Document:
 
-    def init(self, req_type: str=None, payload: list=None) -> None:
+    def __init__(self, req_type: str = None, payload: list = None) -> None:
         """
         Creates a document, as a method of communication.
 
@@ -38,11 +39,12 @@ class Document:
         """
         return pickle.dumps(self)
 
-    def str(self) -> str:
+    def __str__(self) -> str:
         """
-        When printing docs, str will be called and return a comfortable string.
+        When printing docs, __str__ will be called and return a comfortable string.
 
         Returns:
-            str: represenation of the document.
+            str: representation of the document.
         """
-        return f'Document: type = {self.type}\n' + f'paylod = {self.payload}'
+        return f'Document: type = {self.type}\n' + f'payload = {self.payload}'
+

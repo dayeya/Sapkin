@@ -2,7 +2,7 @@ import pickle
 from socket import *
 from threading import Thread
 
-from common import Document
+from Sapkin_Finger_Printer.common import *
 
 
 class Module:
@@ -10,7 +10,7 @@ class Module:
     UTF = "utf-8"
     BUFSIZE = 1024
     ONLINE_CLIENT_BOUND = 5
-    ADDRESS = ('192.168.1.218', 60000)
+    ADDRESS = ('192.168.1.147', 60000)
     
     def __init__(self) -> None:
         """
@@ -59,9 +59,14 @@ class Module:
                 print(f'[+] Crafted Document: {response}')
                 
                 fp_client_sock.send(response.serialize())
-                
+            elif req.type.upper() == "SCAN":
+                client_address = str(fp_client_sock.getsockname()[0])
+                print(client_address)
+                open_ports = self.scan_client_ports(client_address, 1, 60000)
+                print(open_ports)
+                fp_client_sock.send(Document("Ports", open_ports)).serialize()
             else:
-                fp_client_sock.send(self.encode(f"Echoed - {req}"))
+                fp_client_sock.send(Document(f"Echoed - {req}").serialize())
             
         fp_client_sock.close()
     
@@ -86,3 +91,35 @@ class Module:
         """
         
         return str.encode(Module.UTF)
+
+    def is_port_open(self, client_addr, port_num, sock) -> bool:
+        """
+
+        Args:
+            client_addr, port, sock:
+
+        Returns:
+            a bool that indicates if a specific client's  certain port is open
+        """
+        try:
+            sock.connect(client_addr, port_num)
+            return True
+        except (socket.timeout, ConnectionRefusedError):
+            return False
+
+    def scan_client_ports(self, client_addr, start, end) -> list:
+        """
+
+        Args:
+            client_addr, start, end:
+
+        Returns:
+            a list of all the open ports of a specific client between port numbers "start" and "end"
+        """
+        open_ports = []
+        scan_sock = socket(AF_INET, SOCK_STREAM)
+        for i in range(start, end + 1):
+            if self.is_port_open(client_addr, i, scan_sock):
+                open_ports.append(i)
+        scan_sock.close()
+        return open_ports
