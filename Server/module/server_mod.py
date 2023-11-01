@@ -1,9 +1,10 @@
 import pickle
 import socket
 from socket import *
+from typing import List
 from commands import *
 from common import Document
-from threading import Thread
+from threading import Thread, Lock
 
 ADDRESS = ('192.168.1.218', 60000)
 
@@ -59,7 +60,7 @@ class Module:
 
             elif req.type.upper() == SCAN:
                 addr = str(fp_client_sock.getsockname()[0])
-                client_open_ports = self.scan_client_ports(addr)
+                client_open_ports = self.scan_client_ports(addr, 1, 300)
                 response = Document(PORTS, client_open_ports).serialize()
                 fp_client_sock.send(response)
 
@@ -78,35 +79,46 @@ class Module:
         self.clients.append(client_addr)
 
     @staticmethod
-    def check_port(client_addr, port, sock) -> bool:
+    def check_port(ports_lock: Lock, ports_list: list, addr: tuple):
         """
         Checks if a port is open.
-        :param client_addr:
-        :param port:
-        :param sock:
+        :param ports_list:
+        :param addr:
+        :param ports_lock:
         :return: a bool that indicates if a specific client's  certain port is open
         """
-        try:
-            addr = client_addr, port
-            sock.connect(addr)
-            return True
-        except (Exception, ConnectionRefusedError) as e:
-            print(f'[!] Error: {e}')
-            return False
+        with ports_lock:
+            try:
+                scan_sock = socket(AF_INET, SOCK_STREAM)
+                scan_sock.connect(addr)
+                ports_list.append(addr[1])
+                scan_sock.close()
 
-    def scan_client_ports(self, client_addr, initial_port=1, last_port=MAX_PORTS) -> list:
+            # Handle exceptions.
+            except (Exception, ConnectionRefusedError) as e:
+                pass
+
+    def scan_client_ports(self, client_ip, initial_port=1, last_port=MAX_PORTS) -> list:
         """
         Scan the clients open ports from initial_port ot end.
-        :param client_addr:
+        :param client_ip:
         :param initial_port:
         :param last_port:
         :return: A list of all open ports between initial_port and last_port
         """
-        open_ports = []
-        scan_sock = socket(AF_INET, SOCK_STREAM)
-        for port in range(initial_port, last_port + 1):
-            if self.check_port(client_addr, port, scan_sock):
-                open_ports.append(port)
+        threads: List[Thread] = []
+        open_ports: List[int] = []
+        ports_lock: Lock = Lock()
 
-        scan_sock.close()
+        for port in range(initial_port, last_port + 1):
+            addr = client_ip, port
+            thread = Thread(target=self.check_port, args=(ports_lock, open_ports, addr))
+            threads.append(thread)
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
         return open_ports
