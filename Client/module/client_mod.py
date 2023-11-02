@@ -16,13 +16,6 @@ ADDRESS = ('localhost', 60000)
 
 class Module:
     
-    """
-    Client Module, defines the logic of the client.
-
-    Returns:
-        Client_Module: Modules part of MVC, logic
-    """
-    
     UTF = "utf-8"
     BUFSIZE = 1024
 
@@ -48,7 +41,7 @@ class Module:
         if not data:
             raise Exception("Connection with the server has timed out.")
         
-        # if data was bigger than BUFFER_SIZE
+        # More data to receive.
         if len(data) == Module.BUFSIZE:
             while True:
                 try: 
