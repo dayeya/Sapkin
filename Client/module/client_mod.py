@@ -1,9 +1,9 @@
 import pickle
 from socket import *
 from commands import *
-from common import Document
+from Sapkin_Finger_Printer.common import Document
 
-ADDRESS = ('192.168.1.218', 60000)
+ADDRESS = ('192.168.1.147', 60000)
 
 
 class Module:

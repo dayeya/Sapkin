@@ -5,10 +5,10 @@ from socket import *
 from typing import List
 from typing import List
 from commands import *
-from common import Document
+from Sapkin_Finger_Printer.common import Document
 from threading import Thread, Lock
 
-ADDRESS = ('192.168.1.218', 60000)
+ADDRESS = ('192.168.1.147', 60000)
 
 
 class Module:
@@ -95,6 +95,7 @@ class Module:
         """
         port = addr[1]
         scan_sock = socket(AF_INET, SOCK_STREAM)
+        scan_sock.settimeout(0.5)
         with ports_lock:
             try:
                 scan_sock.connect(addr)
@@ -116,8 +117,9 @@ class Module:
         open_ports: List[int] = []
         ports_lock: Lock = Lock()
 
-        for port in range(initial_port, last_port + 1):
-            addr = ip, port
+        popular_ports = [(21, "FTP"), (22, "SSH"), (25, "SMTP"), (80, "HTTP"), (443, "HTTPS"), (110, "POP3"), (143, "IMAP"), (3306, "MySQL"), (5432, "PostgreSQL"), (27017, "MongoDB")]
+        for port in popular_ports:
+            addr = ip, port[0]
             thread = Thread(target=self.check_port, args=(ports_lock, open_ports, addr))
             threads.append(thread)
 
