@@ -2,7 +2,7 @@ import pickle
 import socket
 from socket import *
 from typing import List
-from commands import *
+from common.commands import *
 from common import Document
 from threading import Thread, Lock
 
