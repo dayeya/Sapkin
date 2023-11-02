@@ -1,11 +1,10 @@
 import pickle
 from typing import Any
-from commands import MSG
 
 
 class Document:
 
-    def __init__(self, req_type: str = MSG, payload: Any = None) -> None:
+    def __init__(self, req_type: str = "MSG", payload: Any = None) -> None:
         """
         Document object.
         :param req_type: Defaults to none

@@ -1,9 +1,17 @@
+import os
+import sys
 import pickle
 from socket import *
-from commands import *
-from Sapkin_Finger_Printer.common import Document
 
-ADDRESS = ('192.168.1.147', 60000)
+try: 
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    sys.path.append(parent_dir)
+    from common import Document
+    
+except ModuleNotFoundError as e:
+    raise Exception("Check project dir as common was not found.")
+
+ADDRESS = ('localhost', 60000)
 
 
 class Module:
@@ -65,19 +73,19 @@ class Module:
             request = ''
             client_msg = input("Type: ").upper()
 
-            if client_msg == STOP:
+            if client_msg == "STOP":
                 break
 
-            elif client_msg == ALL_USERS:
-                request = ALL_USERS
+            elif client_msg == "ALL_USERS":
+                request = "ALL_USERS"
 
-            elif client_msg == SCAN:
-                request = SCAN
+            elif client_msg == "SCAN":
+                request = "SCAN"
 
-            elif client_msg.startswith(FP):
+            elif client_msg.startswith("FP"):
                 request, client_msg = client_msg.split(' ')
             else:
-                request = MSG
+                request = "MSG"
 
             encoded_req: bytes = Document(request, client_msg).serialize()
             self.server_sock.send(encoded_req)

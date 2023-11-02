@@ -1,14 +1,19 @@
-from ast import List
+import os
+import sys
 import pickle
-import socket
+from ast import List
 from socket import *
-from typing import List
-from typing import List
-from commands import *
-from Sapkin_Finger_Printer.common import Document
 from threading import Thread, Lock
 
-ADDRESS = ('192.168.1.147', 60000)
+try: 
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    sys.path.append(parent_dir)
+    from common import Document
+    
+except ModuleNotFoundError as e:
+    raise Exception("Check project dir as common was not found.")
+
+ADDRESS = ('localhost', 60000)
 
 
 class Module:
@@ -57,21 +62,21 @@ class Module:
                 break
 
             print(f'[+] Received: {req}')
-            if req.type.upper() == ALL_USERS:
-                response = Document(USERS, self.clients).serialize()
+            if req.type.upper() == "ALL_USERS":
+                response = Document("USERS", self.clients).serialize()
                 fp_client_sock.send(response)
 
-            elif req.type.upper() == SCAN:
+            elif req.type.upper() == "SCAN":
                 addr = fp_client_sock.getsockname()
                 client_open_ports = self.scan_client_ports(addr, initial_port=49152, last_port=49252)
-                response = Document(PORTS, client_open_ports).serialize()
+                response = Document("PORTS", client_open_ports).serialize()
                 fp_client_sock.send(response)
 
-            elif req.type.upper() == FP:
+            elif req.type.upper() == "FP":
                 print(f'[+] Passive finger printing of: {req.payload}.')
 
             else:
-                response = Document(ECHO, f"Echoed! {req.payload}").serialize()
+                response = Document("ECHO", f"Echoed! {req.payload}").serialize()
                 fp_client_sock.send(response)
             
         fp_client_sock.close()
@@ -113,11 +118,22 @@ class Module:
         :return: A list of all open ports between initial_port and last_port
         """
         ip = client_addr[0]
+        ports_lock = Lock()
         threads: List[Thread] = []
         open_ports: List[int] = []
-        ports_lock: Lock = Lock()
-
-        popular_ports = [(21, "FTP"), (22, "SSH"), (25, "SMTP"), (80, "HTTP"), (443, "HTTPS"), (110, "POP3"), (143, "IMAP"), (3306, "MySQL"), (5432, "PostgreSQL"), (27017, "MongoDB")]
+        popular_ports = [
+            (21, "FTP"), 
+            (22, "SSH"), 
+            (25, "SMTP"), 
+            (80, "HTTP"), 
+            (443, "HTTPS"), 
+            (110, "POP3"), 
+            (143, "IMAP"),
+            (3306, "MySQL"), 
+            (5432, "PostgreSQL"), 
+            (27017, "MongoDB")
+        ]
+        
         for port in popular_ports:
             addr = ip, port[0]
             thread = Thread(target=self.check_port, args=(ports_lock, open_ports, addr))

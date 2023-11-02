@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "C:\\coding\\Python\\Projects\\Sapkin_Finger_Printer"
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "python",
+		"python.analysis.autoSearchPaths": true,
+		"python.analysis.extraPaths": [
+			"./common",
+			"./Server/module"
+		],
+	}
+}

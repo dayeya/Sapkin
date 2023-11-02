@@ -1,6 +1,5 @@
 from module import Module
 
-
 class Server(Module):
     
     def __init__(self) -> None:
