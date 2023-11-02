@@ -74,6 +74,8 @@ class Module:
             elif client_msg == SCAN:
                 request = SCAN
 
+            elif client_msg.startswith(FP):
+                request, client_msg = client_msg.split(' ')
             else:
                 request = MSG
 

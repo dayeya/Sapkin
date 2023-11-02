@@ -67,6 +67,9 @@ class Module:
                 response = Document(PORTS, client_open_ports).serialize()
                 fp_client_sock.send(response)
 
+            elif req.type.upper() == FP:
+                print(f'[+] Passive finger printing of: {req.payload}.')
+
             else:
                 response = Document(ECHO, f"Echoed! {req.payload}").serialize()
                 fp_client_sock.send(response)
