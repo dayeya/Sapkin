@@ -1,10 +1,12 @@
+from ast import List
 import pickle
 import socket
 from socket import *
 from typing import List
+from typing import List
 from common.commands import *
 from common import Document
-from threading import Thread, Lock
+from threading import Thread, Lock, Lock
 
 ADDRESS = ('192.168.1.218', 60000)
 
