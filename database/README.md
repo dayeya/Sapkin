@@ -5,24 +5,18 @@ There are several types of signatures, each json file will include signatures of
 .json file formats.
 tcp.json
 ```json
-  "os-type": {
-    "tcp-sig": ["signature-list"]
-  }
+  "os-type": ["signature-list"]
 ```
 mtu.json
 ```json
-  "link-type": {
-    "mtu": ["signature-list"]
-  }
+  "link-type": ["signature-list"]
 ```
 http.json
 ```json
-  "web-server": {
-    "http": ["signature-list"]
-  }
+  "web-server": ["signature-list"]
 ```
 
-Each signature will have the following format 
+Each signature will have the following format:
 * mtu sig  = link | mtu
 * tcp sig  = version | ttl | options-len | mss | window-size, scale | options | flags | payload
 * http sig = version | headers | no-headers | desc
