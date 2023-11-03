@@ -7,7 +7,7 @@ The following format will be used to all OS types.
 tcp.json
 ``` json
   "os-type": {
-    "tcp-sig":  ["signature-list"],
+    "tcp-sig":  ["signature-list"]
   }
 ```
 mtu.json
