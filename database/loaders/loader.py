@@ -1,4 +1,24 @@
+import os
 import json
+from pathlib import Path
+
+# Project root directory.
+ROOT_DIR = Path(__file__)
+DATA_FOLDER = 'data'
+
+def craft_json_path(file: str="") -> Path:
+    """
+    Function to join the ROOT_DIR path with all the .json files from ./data
+    Will create paths to (tcp, mtu, http).json
+
+    Args:
+        file (str): file name with type 
+
+    Returns:
+        Path: Full Path from ROOT_DIR to file.
+    """
+    end_pointer = os.path.join(DATA_FOLDER, file)
+    return ROOT_DIR.parent.parent.joinpath(end_pointer)
 
 class Loader:
     
@@ -7,7 +27,7 @@ class Loader:
         Loader object.
 
         Args:
-            sig_json (str): loads the data from a given json file. 
+            json (str): .json file name.
         """
         self._json_file = json
 

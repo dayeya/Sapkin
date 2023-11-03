@@ -1,5 +1,3 @@
 {
-    "web-server": {
-        "http": ["signature-list"]
-    }
+    "web-server": ["signature-list"]
 }

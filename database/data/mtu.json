@@ -1,5 +1,3 @@
 {
-    "Ethernet": {
-        "mtu": ["1500"]
-    }    
+    "Ethernet": 1500
 }

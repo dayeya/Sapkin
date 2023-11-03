@@ -1,4 +1,4 @@
-from loaders.loader import Loader
+from loaders.loader import Loader, craft_json_path
 
 class MTULoader(Loader):
     
@@ -6,4 +6,4 @@ class MTULoader(Loader):
         """
         MTULoader to load mtu data.
         """
-        super().__init__("mtu.json")
+        super().__init__(craft_json_path("mtu.json"))

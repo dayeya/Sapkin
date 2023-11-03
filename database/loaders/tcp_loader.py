@@ -1,4 +1,4 @@
-from loaders.loader import Loader
+from loaders.loader import Loader, craft_json_path
 
 class TCPLoader(Loader):
     
@@ -6,4 +6,4 @@ class TCPLoader(Loader):
         """
         TCPLoader to load TCP data.
         """
-        super().__init__(r"tcp.json")
+        super().__init__(craft_json_path("tcp.json"))

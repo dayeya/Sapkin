@@ -1,4 +1,4 @@
-from loaders.loader import Loader
+from loaders.loader import Loader, craft_json_path
 
 class HTTPLoader(Loader):
     
@@ -6,4 +6,4 @@ class HTTPLoader(Loader):
         """
         HTTPLoader to load http data.
         """
-        super().__init__("http.json")
+        super().__init__(craft_json_path("http.json"))

@@ -40,10 +40,3 @@ class Database:
                     .load()
                     .items()
                     )
-    
-
-if __name__ == "__main__":
-    db = Database()
-    tcp_iter = db.iter_tcp()
-    for os, sig in tcp_iter:
-        print(f'OS {os} -> TCP signatures {sig}')
