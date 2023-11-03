@@ -27,4 +27,6 @@ http.json
 Each signature will have the following format 
 * mtu sig  = link | mtu
 * tcp sig  = version | ttl | options-len | mss | window-size, scale | options | flags | payload
-* http sig = version | headers | no-headers | desc 
+* http sig = version | headers | no-headers | desc
+
+Credit for p0f.
