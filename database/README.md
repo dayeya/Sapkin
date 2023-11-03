@@ -21,7 +21,6 @@ http.json
   "web-server": {
     "http": ["signature-list"]
   }
-
 ```
 
 Each signature will have the following format 
