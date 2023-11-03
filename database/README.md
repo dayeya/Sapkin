@@ -7,14 +7,20 @@ The following format will be used to all OS types
 ``` json
 {
   "os-type": {
-    "tcp": { "signature-list" },
-    "mtu": { "signature-list" },
-    "http": { "signature-list" },
-  }
+    "tcp":  ["signature-list"],
+  },
+
+  "link-type": {
+    "mtu": ["signature-list"],
+  },
+
+  "web-server": {
+    "http": ["signature-list"]
+  },
 }
 ```
 
 Each signature will have the following format 
 * mtu sig  = link | mtu
 * tcp sig  = version | ttl | options-len | mss | windwos-size, scale | options | flags | payload
-* http sig = version | 
+* http sig = version | headers | no-headers | desc 
