@@ -1,13 +1,5 @@
 {
     "os-type": {
-        "tcp":  ["signature-list"],
-
-        "link-type": {
-            "mtu": ["signature-list"]
-        },
-
-        "web-server": {
-            "http": ["signature-list"]
-        }
+        "tcp-sig":  ["signature-list"]
     }
 }
