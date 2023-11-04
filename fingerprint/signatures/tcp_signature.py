@@ -45,13 +45,13 @@ class TCPSignature:
         Returns:
             str: String representation of self
         """
-        return f"TCPSignature: 
-                {self.version}:
-                {self.ttl}:
-                {self.op_len}:
-                {self.mss}:
-                {self.win_size}:
-                {self.scale}:
-                {self.options}:
-                {self.flags}:
-                {self.payload_size}"
+        return f"TCPSignature: " \
+               f"version: {self.version}, " \
+               f"ttl: {self.ttl}, " \
+               f"op_len: {self.op_len}, " \
+               f"mss: {self.mss}, " \
+               f"win_size: {self.win_size}, " \
+               f"scale: {self.scale}, " \
+               f"options: {self.options}, " \
+               f"flags: {self.flags}, " \
+               f"payload_size: {self.payload_size}"

@@ -1,30 +1,11 @@
-import pydivert
 import re
 import psutil
-from signatures.tcp_signature import *
-from signatures.http_signature import *
-from signatures.mtu_signature import *
+import pydivert
 
-class Sniffer:
-    
-    def __init__(self, filtr: str="true") -> None:
-        """
-        Sniffer Object
-
-        Args:
-            f (str, optional): Filter for the WinDivert. Defaults to None.
-        """
-        self._w = pydivert.WinDivert(filtr)
-
-    def sniff_packets(self) -> None:
-        """
-        Sniffs packets.
-        """
-        
-        print("Sniffing...")
-        with self._w as packet_driver:
-            for packet in packet_driver:
-                print(packet)
+from signatures import TCPSignature
+from signatures import MTUSignature
+from signatures import HTTPSignature
+from packet_wrapper import PacketWrapper
 
 
 def create_packet_sig(packet):
@@ -49,7 +30,7 @@ def create_packet_sig(packet):
 
             #http sig = version | headers | no-headers | desc
             #WE NEED TO DETERMINE WHAT NEEDS TO BE PUT IN THE NO-HEADERS ATTRIBUTE AND THE DESC ATTRIBUTE.
-            protocol_sig = HTTP_sig("all", headers, None, "")
+            protocol_sig = HTTPSignature("all", headers, None, "")
         else:
             #means that this is a regular TCP packet
             print("this is a regular TCP packet")
@@ -91,7 +72,7 @@ def create_packet_sig(packet):
             flags = {"syn":syn_flag, "ack":ack_flag, "fin":fin_flag}
             payload = packet.payload
             #tcp sig  = version | ttl | options-len | mss | window-size, scale | options | flags | payload
-            protocol_sig = TCP_sig("all", ttl, op_len, mss, window_size, scale, options, flags, payload)
+            protocol_sig = TCPSignature("all", ttl, op_len, mss, window_size, scale, options, flags, payload)
 
         #MTU signature
         
@@ -106,10 +87,36 @@ def create_packet_sig(packet):
             mtu_val = None
             print(e, " has occured")
         #mtu sig  = link | mtu
-        mtu_sig = MTU_sig(link, mtu_val)
+        mtu_sig = MTUSignature(link, mtu_val)
 
         sig = {"Protocol":protocol_sig, "MTU_sig":mtu_sig}
         return sig
+
+class Sniffer:
+    
+    def __init__(self, filtr: str="true") -> None:
+        """
+        Sniffer Object
+
+        Args:
+            f (str, optional): Filter for the WinDivert. Defaults to None.
+        """
+        self._w = pydivert.WinDivert(filtr)
+
+    def start(self) -> None:
+        """
+        Sniffs packets.
+        """
+
+        with self._w as packet_driver:
+            for packet in packet_driver:
+                pw = PacketWrapper(packet)
+                pw.print_p()
+                
+if __name__ == "__main__":
+    s = Sniffer()
+    s.start()
+                
         
 
 

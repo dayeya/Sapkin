@@ -1,7 +1,7 @@
 from typing import TypeVar
 
 # HTTP version can be 1.0, 1.1, 2.0 or ALL.
-Version = TypeVar("HTTP_Version", str)
+Version = TypeVar("HTTP_Version", str, None)
 
 class HTTPSignature:
 
@@ -30,8 +30,8 @@ class HTTPSignature:
         Returns:
             str: String representation of self
         """
-        return f"HTTPSignature: 
-                {self.version}:
-                {self.headers}:
-                {self.no_headers}:
-                {self.desc}"
+        return f"HTTPSignature: " \
+               f"{self.version}: " \
+               f"{self.headers}: " \
+               f"{self.no_headers}: " \
+               f"{self.desc}"

@@ -16,6 +16,6 @@ class MTUSignature:
         Returns:
             str: String representation of self
         """
-        return f"MTUSignature: 
-                {self.link}:
-                {self.mtu}"
+        return f"MTUSignature: " \
+               f"{self.link}:" \
+               f"{self.mtu}"
