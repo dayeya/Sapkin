@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-# HTTP version can be 1.0, 1.1, 2.0 or ALL.
+# HTTP version can be 1.0, 1.1, 2.0, or ALL.
 Version = TypeVar("HTTP_Version", str)
 
 class HTTPSignature:
@@ -16,7 +16,7 @@ class HTTPSignature:
 
         Args:
             version    (str, optional): version, 1.0 / 1.1 or any. Defaults to "ALL"
-            headers    (list, optional): headers from a fetched corresponding. Defaults to []
+            headers    (list, optional): headers of the corresponding packet. Defaults to []
             no_headers (list, optional): absent headers from the corresponding packet. Defaults to []
             desc       (str, optional): 'User-Agent' or 'Server'. Defaults to ""
         """
