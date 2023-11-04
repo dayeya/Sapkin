@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 # Project root directory.
+# move to path.py
 ROOT_DIR = Path(__file__)
 DATA_FOLDER = 'data'
 
