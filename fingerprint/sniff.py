@@ -1,5 +1,6 @@
 import pydivert
 import re
+import psutil
 from signatures.tcp_signature import *
 from signatures.http_signature import *
 from signatures.mtu_signature import *
@@ -32,7 +33,6 @@ def create_packet_sig(packet):
     """            
     #add consideration for inbbound and outbound packets
     ip_header = packet.ip
-    sig = []
     if ip_header.protocol == 6:
         #means that this is a tcp packet (almost every HTTP packet is transmitted using TCP/IP).
 
@@ -43,7 +43,13 @@ def create_packet_sig(packet):
         if re.search(methods, packet_data):
             #means that this is an HTTP packet since it's data contains HTTP methods
             print("this is an HTTP packet")
+
+            #we are seperating the packet data into two parts, HTTP headers and HTTP message content, the first occurance of the '\r\n\r\n' string seperates the headers and the content
+            headers, content = packet_data.split('\r\n\r\n', 1)
+
             #http sig = version | headers | no-headers | desc
+            #WE NEED TO DETERMINE WHAT NEEDS TO BE PUT IN THE NO-HEADERS ATTRIBUTE AND THE DESC ATTRIBUTE.
+            protocol_sig = HTTP_sig("all", headers, None, "")
         else:
             #means that this is a regular TCP packet
             print("this is a regular TCP packet")
@@ -68,7 +74,7 @@ def create_packet_sig(packet):
             
             window_size = packet.tcp.window_size
             scale = packet.tcp.window_scale
-            
+
             flags = packet.tcp.flags
             syn_flag = False
             ack_flag = False
@@ -79,11 +85,35 @@ def create_packet_sig(packet):
             if flags & pydivert.TCP_FLAG_ACK:
                 ack_flag = True
             if flags & pydivert.TCP_FLAG_FIN:
-                fin_flag = False
+                fin_flag = True
             flags = {"syn":syn_flag, "ack":ack_flag, "fin":fin_flag}
             payload = packet.payload
             #tcp sig  = version | ttl | options-len | mss | window-size, scale | options | flags | payload
             protocol_sig = TCP_sig("all", ttl, op_len, mss, window_size, scale, options, flags, payload)
+
+        #MTU signature
+        
+        #determines if the packet was transmitted over ethernet or wifi
+        #WE NEED TO ADD OTHER TYPES OF LINKS
+        interface_name = packet.interface_name
+        if "Ethernet" in interface_name:
+            link = "Ethernet"
+        elif "Wi-Fi" in interface_name:
+            link = "Wi-Fi"
+        else:
+            link = "unknown"
+        
+        #finds out the mtu value
+        try:
+            mtu_val = psutil.net_if_stats()[interface_name].mtu
+        except Exception as e:
+            mtu_val = None
+            print(e, " has occured")
+        #mtu sig  = link | mtu
+        mtu_sig = MTU_sig(link, mtu_val)
+
+        sig = {"Protocol":protocol_sig, "MTU_sig":mtu_sig}
+        
 
 
 
