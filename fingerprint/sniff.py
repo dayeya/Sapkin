@@ -71,6 +71,8 @@ def create_packet_sig(packet):
             #checks if the packet has the mss attrubute
             if hasattr(packet.tcp, 'mss'):
                 mss = packet.tcp.mss
+            else:
+                mss = None
             
             window_size = packet.tcp.window_size
             scale = packet.tcp.window_scale
@@ -95,17 +97,11 @@ def create_packet_sig(packet):
         
         #determines if the packet was transmitted over ethernet or wifi
         #WE NEED TO ADD OTHER TYPES OF LINKS
-        interface_name = packet.interface_name
-        if "Ethernet" in interface_name:
-            link = "Ethernet"
-        elif "Wi-Fi" in interface_name:
-            link = "Wi-Fi"
-        else:
-            link = "unknown"
+        link = packet.adapter_name
         
         #finds out the mtu value
         try:
-            mtu_val = psutil.net_if_stats()[interface_name].mtu
+            mtu_val = psutil.net_if_stats()[link].mtu
         except Exception as e:
             mtu_val = None
             print(e, " has occured")
@@ -113,6 +109,7 @@ def create_packet_sig(packet):
         mtu_sig = MTU_sig(link, mtu_val)
 
         sig = {"Protocol":protocol_sig, "MTU_sig":mtu_sig}
+        return sig
         
 
 
