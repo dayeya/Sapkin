@@ -1,4 +1,4 @@
-from pydivert import Packet as PyDivertPacket
+from scapy.all import Packet as ScapyPacket
 
-class PacketWrapper(PyDivertPacket):
+class PacketWrapper(ScapyPacket):
     pass
