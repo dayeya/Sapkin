@@ -1,7 +1,7 @@
 from typing import List, TypeVar
 
 # version fields can be 4, 6 or ALL.
-Version = TypeVar("IP_Version", int, str)
+Version = TypeVar("Version", int, str)
 
 class TCPSignature:
 

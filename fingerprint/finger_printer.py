@@ -1,7 +1,8 @@
 import re
 import psutil
 from scapy.all import *
-
+from scapy.layers import TCP
+from scapy.layers.inet import IP, IPv6
 from signatures import TCPSignature
 from signatures import MTUSignature
 from signatures import HTTPSignature
@@ -16,19 +17,43 @@ URG = 0x20
 ECE = 0x40
 CWR = 0x80
 
+important_HTTP_headers = headers_set = {
+    "Host",
+    "User-Agent",
+    "Connection",
+    "Accept",
+    "Accept-Encoding",
+    "Accept-Language",
+    "Accept-Charset",
+    "Keep-Alive",
+    "Content-Type",
+    "Connection",
+    "Keep-Alive",
+    "Accept-Ranges",
+    "Date"
+}
+
 def create_packet_sig(packet):
     """
     recieves a packet and returns it's signature
     """            
     #add consideration for inbbound and outbound packets
-    ip_header = packet.ip
-    if ip_header.protocol == 6:
+    is_TCP = False
+    if IP in packet:
+        ip_header = packet[IP]
+        if ip_header.proto == 6:
+            is_TCP = True
+    elif IPv6 in packet:
+        ip_header = packet[IPv6]
+        if ip_header.nh == 6:
+            is_TCP = True
+    if is_TCP:
         #means that this is a tcp packet (almost every HTTP packet is transmitted using TCP/IP).
 
         #common HTTP methods that are present in HTTP packets
         methods = 'GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE'
 
-        packet_data = packet.tcp.payload.decode('utf-8','ignore')
+        packet_data = str(packet[TCP].payload, 'utf-8', 'ignore')
         if re.search(methods, packet_data):
             #means that this is an HTTP packet since it's data contains HTTP methods
             print("this is an HTTP packet")
@@ -44,29 +69,31 @@ def create_packet_sig(packet):
             print("this is a regular TCP packet")
 
             #checks what type of ip address does the packet have so that we can get the TTL attribute correctly
-            if packet.is_ipv4:
-                ttl = packet.ipv4.ttl
-            else:
-                ttl = packet.ipv6.hop_limit
+            if IP in packet:
+                ttl = packet[IP].ttl
+            elif IPv6 in packet:
+                ttl = packet[IPv6].hlim
 
             #checks if the packet has the options attribute
-            if hasattr(packet.tcp, 'options'):
-                options = packet.tcp.options
+            tcp_header = packet[TCP]
+            if 'options' in tcp_header.fields:
+                options = tcp_header.options
                 op_len = len(options)
             else:
                 options = None
                 op_len = 0
             
             #checks if the packet has the mss attrubute
-            if hasattr(packet.tcp, 'mss'):
-                mss = packet.tcp.mss
+            if 'mss' in tcp_header.fields:
+                mss = tcp_header.mss
             else:
                 mss = None
             
-            window_size = packet.tcp.window_size
-            scale = packet.tcp.window_scale
+       
+            window_size = tcp_header.window
+            scale = tcp_header.ws
 
-            flags = packet.tcp.flags
+            flags = tcp_header.flags
             syn_flag = False
             ack_flag = False
             fin_flag = False
@@ -85,8 +112,7 @@ def create_packet_sig(packet):
         #MTU signature
         
         #determines if the packet was transmitted over ethernet or wifi
-        #WE NEED TO ADD OTHER TYPES OF LINKS
-        link = packet.adapter_name
+        link = packet.sniffed_on
         
         #finds out the mtu value
         try:
