@@ -1,4 +1,4 @@
-* Fix TCPListener bug.
 * Handle clients in the TCPListener.
 * Thread to every new client, and all started threads.
 * Connect the TCPListener to the Server.
+* Finish TCP fingerprinting.
