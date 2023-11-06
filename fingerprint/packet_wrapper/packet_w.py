@@ -5,9 +5,9 @@ from scapy.all import Packet as ScapyPacket
 from scapy.layers.inet import TCP, IP
 from scapy.layers.http import HTTPRequest, HTTPResponse
 
-from signatures import TCPSignature, TCPOptions, Flags
-from signatures import MTUSignature
-from signatures import HTTPSignature
+from ..signatures import TCPSignature, TCPOptions, Flags
+from ..signatures import MTUSignature
+from ..signatures import HTTPSignature
 
 UTF = 'utf-8'
 Signature = Union[TCPSignature, MTUSignature, HTTPSignature]
@@ -95,9 +95,7 @@ class PacketWrapper(ScapyPacket):
         Returns:
             List[str]: list of special flags, specified in tcp_signature.py
         """
-        
         special_flags: List[str] = []
-        
         ip_layer  = self.getlayer(cls=IP)
         tcp_layer = self.getlayer(cls=TCP)
         

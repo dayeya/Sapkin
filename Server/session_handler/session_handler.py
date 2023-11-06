@@ -1,15 +1,22 @@
 from scapy.all import *
-from scapy.layers.inet import TCP, IP, IPv6
+from scapy.layers.inet import TCP, IP
 from scapy.all import Packet as ScapyPacket
-
 from threading import Thread
-from fingerprint import PacketWrapper
 
+try: 
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    sys.path.append(parent_dir)
+    from fingerprint import PacketWrapper
+    
+except ModuleNotFoundError as e:
+    raise Exception("Check project dir as fingerprint was not found.")
+
+FILTER = f"tcp"
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
-FILTER = f"tcp"
+ADDRESS = ('localhost', 60000)
 
-class SessionHandler:
+class SessionHandler(Thread):
     
     def __init__(self) -> None:
         """
@@ -40,6 +47,8 @@ class SessionHandler:
         """
         
         self._running = True
+        print("Handler is listening!")
+        
         while self._running:
             self._packets = sniff(count=PACKET_AT_A_TIME, filter=FILTER, prn=self.packet_handler)
     

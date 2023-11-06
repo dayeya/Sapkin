@@ -18,7 +18,7 @@ class Flags:
     ECE = 0x40
     CWR = 0x80
     
-    # Special Flags - QUIRKS
+    # Special Flags - p0f
     DF_SET = "df"
     DF_SET_NON_ZERO_ID = "id+"
     DF_NOT_SET_ID_ZERO = "id-"

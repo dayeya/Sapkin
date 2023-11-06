@@ -5,6 +5,8 @@ from ast import List
 from socket import *
 from threading import Thread, Lock
 
+from session_handler import SessionHandler
+
 try: 
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
     sys.path.append(parent_dir)
@@ -14,7 +16,6 @@ except ModuleNotFoundError as e:
     raise Exception("Check project dir as common was not found.")
 
 ADDRESS = ('localhost', 60000)
-
 
 class Module:
     
@@ -30,16 +31,23 @@ class Module:
         self.clients = []
         self.main_sock = socket(AF_INET, SOCK_STREAM)
         
+        self.sessions_handler = SessionHandler()
+        self._sessions_thread = Thread(target=self.sessions_handler.listen)
+        
     def start(self) -> None:
         """
         Starts the server, listening to clients.
         """
         self.main_sock.bind(ADDRESS)
         self.main_sock.listen(Module.ONLINE_CLIENT_BOUND)
-        
         print(f"[+] Server is up!")
+        
+        # Start listener.
+        self._sessions_thread.start()
+        
         while True:
             
+            print("B")
             # SERVER_SOCK of client.
             fp_server_sock, addr = self.main_sock.accept()
             
@@ -68,7 +76,7 @@ class Module:
 
             elif req.type.upper() == "SCAN":
                 addr = fp_client_sock.getsockname()
-                client_open_ports = self.scan_client_ports(addr, initial_port=49152, last_port=49252)
+                client_open_ports = self._scan_client_ports(addr, initial_port=1, last_port=Module.MAX_PORTS)
                 response = Document("PORTS", client_open_ports).serialize()
                 fp_client_sock.send(response)
 
@@ -90,7 +98,7 @@ class Module:
         self.clients.append(client_addr)
 
     @staticmethod
-    def check_port(ports_lock: Lock, ports_list: list, addr: tuple):
+    def _check_port(ports_lock: Lock, ports_list: list, addr: tuple) -> None:
         """
         Checks if a port is open.
         :param ports_list:
@@ -101,6 +109,8 @@ class Module:
         port = addr[1]
         scan_sock = socket(AF_INET, SOCK_STREAM)
         scan_sock.settimeout(0.5)
+        
+        # Access LOCK
         with ports_lock:
             try:
                 scan_sock.connect(addr)
@@ -109,7 +119,7 @@ class Module:
             except (Exception, ConnectionRefusedError) as e:
                 print(f'[!] Port {port} is closed')
 
-    def scan_client_ports(self, client_addr, initial_port=1, last_port=MAX_PORTS) -> list:
+    def _scan_client_ports(self, client_addr, initial_port=1, last_port=MAX_PORTS) -> list:
         """
         Scan the clients open ports from initial_port ot end.
         :param client_addr:
@@ -136,7 +146,7 @@ class Module:
         
         for port in popular_ports:
             addr = ip, port[0]
-            thread = Thread(target=self.check_port, args=(ports_lock, open_ports, addr))
+            thread = Thread(target=self._check_port, args=(ports_lock, open_ports, addr))
             threads.append(thread)
 
         # Start scanning each port.

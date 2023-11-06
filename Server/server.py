@@ -1,5 +1,4 @@
 from module import Module
-from session_handler import SessionHandler
 
 class Server:
     
@@ -8,7 +7,12 @@ class Server:
         Creates Server object.
         """
         self.server_handler = Module()
-        self.sessions_handler = SessionHandler()
+        
+    def run(self) -> None:
+        """
+        Starts the server.
+        """
+        self.server_handler.start()
 
     def close_server(self) -> None:
         """
@@ -20,4 +24,4 @@ class Server:
 
 if __name__ == "__main__":
     server = Server()
-    server.start()
+    server.run()

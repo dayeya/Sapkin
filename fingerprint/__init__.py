@@ -1,1 +1,1 @@
-from packet_wrapper.packet_wrapper import PacketWrapper
+from .packet_wrapper import PacketWrapper
