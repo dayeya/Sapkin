@@ -3,13 +3,13 @@ from scapy.layers.inet import TCP, IP, IPv6
 from scapy.all import Packet as ScapyPacket
 
 from threading import Thread
-from packet_wrapper import PacketWrapper
+from fingerprint import PacketWrapper
 
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
 FILTER = f"tcp"
 
-class SessionsHandler:
+class SessionHandler:
     
     def __init__(self) -> None:
         """

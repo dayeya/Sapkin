@@ -1,4 +1,4 @@
-* Handle clients in the TCPListener.
+* Handle clients in the SessionHandler.
 * Thread to every new client, and all started threads.
-* Connect the TCPListener to the Server.
+* Connect the SessionHandler to the Server.
 * Finish TCP fingerprinting.

@@ -1,12 +1,14 @@
 from module import Module
+from session_handler import SessionHandler
 
-class Server(Module):
+class Server:
     
     def __init__(self) -> None:
         """
         Creates Server object.
         """
-        super().__init__()
+        self.server_handler = Module()
+        self.sessions_handler = SessionHandler()
 
     def close_server(self) -> None:
         """
