@@ -74,8 +74,6 @@ class PacketWrapper(ScapyPacket):
         tcp_options = {option: val for option, val in op}
         return tcp_options
         
-    
-    @staticmethod
     def _guess_ittl(self) -> int:
         """
         Checks the most possible ittl of a packet.

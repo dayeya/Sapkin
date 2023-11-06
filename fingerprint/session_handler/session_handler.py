@@ -9,7 +9,7 @@ DST_PORT = 60000
 PACKET_AT_A_TIME = 1
 FILTER = f"tcp"
 
-class SessionsHandler():
+class SessionsHandler:
     
     def __init__(self) -> None:
         """
