@@ -3,7 +3,55 @@ from typing import List, TypeVar
 # version fields can be 4, 6 or ALL.
 IP_Version = TypeVar("IP_Version", int, str)
 
+class Flags:
+    """
+    Special flags in IP and TCP headers.
+    """
+    
+    # Core TCP flags.
+    FIN = 0x01
+    SYN = 0x02
+    RST = 0x04
+    PSH = 0x08
+    ACK = 0x10
+    URG = 0x20
+    ECE = 0x40
+    CWR = 0x80
+    
+    # Special Flags - QUIRKS
+    DF_SET = "df"
+    DF_SET_NON_ZERO_ID = "id+"
+    DF_NOT_SET_ID_ZERO = "id-"
+    ECN = "ecn"
+    MZERO = "0+"
+    NON_ZERO_FLOW_ID = "flow"
+    ZERO_SEQ = "seq-"
+    NON_ZERO_POSITIVE_ACK = "ack+"
+    ACK_ZERO_FLAG_SET = "ack-"
+    NON_ZERO_URG_NOT_SET = "uptr+"
+    URG_FLAG_SET = "urgf+"
+    PUSH_FLAG_SET = "pushf+"
+    ZERO_OWN_TIMESTAMP = "ts1-"
+    NON_ZERO_TIMESTAMP_INIT_SYN = "ts2+" 
+    NON_ZERO_DATA = "opt+"
+    EXCESSIVE_WSCALE = "exws"
+    MALFORMED_OP = "bad"
+
+class TCPOptions:
+    """
+    All TCP options there are.
+    """
+    MSS = "MSS"
+    NOP = "NOP"
+    WINDOW_SCALE = "WScale"
+    SOK = "SAckOK"
+    SACK = "SAck"
+    TIMESTAMP = "TS"
+
 class TCPSignature:
+    
+    MSS_DEFAULT = "*"
+    WINDOW_SCALE_DEFAULT = "*"
 
     def __init__(self, 
                  version: IP_Version="ALL", 
@@ -12,8 +60,8 @@ class TCPSignature:
                  mss=0, 
                  win_size=0, 
                  scale=0, 
-                 options: List[str]=None, 
-                 flags: dict=None, 
+                 options_layout: List[str]=None, 
+                 special_flags: dict=None, 
                  payload_size=0
             ) -> None:
         """
@@ -36,8 +84,8 @@ class TCPSignature:
         self.mss = mss
         self.win_size = win_size
         self.scale = scale
-        self.options = options if op_len > 0 else []
-        self.flags = flags if flags else {}
+        self.options = options_layout if op_len > 0 else []
+        self.flags = special_flags if special_flags else {}
         self.payload_size = payload_size
     
     def __str__(self) -> str:

@@ -1,12 +1,15 @@
 from scapy.all import *
+from scapy.layers.inet import TCP, IP, IPv6
 from scapy.all import Packet as ScapyPacket
+
 from threading import Thread
+from packet_wrapper import PacketWrapper
 
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
-FILTER = f"localhost and dst port {DST_PORT}"
+FILTER = f"tcp"
 
-class TCPListener():
+class SessionsHandler():
     
     def __init__(self) -> None:
         """
@@ -29,15 +32,18 @@ class TCPListener():
         Reboots the listener.
         """
         self._running = True
+        self.listen()
+    
+    def listen(self) -> None:
+        """
+        Listens to packet,targets TCP Hanhshakes, SYN, SYN+ACK packets.
+        """
         
-    def listen(self):
-        
+        self._running = True
         while self._running:
-            
-            self._packets = sniff(count=PACKET_AT_A_TIME, prn=self.single_packet)
-            
-    def single_packet(self, packet: ScapyPacket) -> None:
-        print(f'Captured packet: \n{packet.summer()}')
-
-            
+            self._packets = sniff(count=PACKET_AT_A_TIME, filter=FILTER, prn=self.packet_handler)
+    
+    def packet_handler(self, p: ScapyPacket) -> None:
+        print(f'Captured packet: {p.summary()}')
+        
 
