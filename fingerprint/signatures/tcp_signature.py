@@ -34,15 +34,33 @@ class Flags:
     MALFORMED_OP = "bad"
 
 class TCPOptions:
-    """
-    All TCP options there are.
-    """
     MSS = "MSS"
     NOP = "NOP"
     WINDOW_SCALE = "WScale"
     SOK = "SAckOK"
     SACK = "SAck"
     TIMESTAMP = "TS"
+    
+    FORMATS = {
+        "MSS": "mss",
+        "NOP": "nop",
+        "WScale": "ws",
+        "SAckOK": "sok",
+        "SAck": "sack",
+        "TS": "ts"
+    }
+    
+    def convert(option: str) -> str:
+        """
+        Converts an option string into p0f signature format.
+
+        Args:
+            option (str): one of the TCPOption fields.
+
+        Returns:
+            str: p0f syntax of option.
+        """
+        return TCPOptions.FORMATS[option]
 
 class TCPSignature:
     
@@ -64,9 +82,9 @@ class TCPSignature:
         TCPSignature object.
 
         Args:
-            version (str, optional): IPv4 / IPv6 or. Defaults to "all".
+            version (str, optional): IPv4 / IPv6 or. Defaults to "ALL".
             ttl (int, optional): Initial TTL of the corresponsing packet. Defaults to 128, we just picked it.
-            op_len (int, optional): Options fields length. Defaults to 0.
+            op_len (int, optional): Options field length at IP layer. Defaults to 0.
             mss (int, optional): MSS field of the corresponsing packet. Defaults to 0.
             win_size (int, optional): Window size. Defaults to 0.
             scale (int, optional): Window scale. Defaults to 0.
@@ -91,9 +109,9 @@ class TCPSignature:
         Returns:
             str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
         """
-        return f'{self.version}:{self.ttl}:{self.op_len}:{self.mss}:{self.win_size},{self.scale}:{self.options}:{self.flags}:{self.payload_size}'
+        return f'{self.version}:{self.ttl}:{self.op_len}:{self.mss}:' \
+               f'{self.win_size},{self.scale}:{self.options}:{self.flags}:{self.payload_size}'
         
-    
     def __str__(self) -> str:
         """
         Returns:
