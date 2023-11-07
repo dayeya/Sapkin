@@ -77,8 +77,8 @@ class PacketWrapper:
             return {TCPOptions.convert(option): data for option, data in op}
         
         except Exception as e:
-            raise Exception(f"Unable to retrieve TCP options. {e}")
-        
+            print(f"[!] Unable to retrieve TCP options.")
+            return {}
         
     def _guess_ittl(self) -> int:
         """
@@ -168,7 +168,6 @@ class PacketWrapper:
         # tcp options fields.
         mss   = tcp_options_dict.get(TCPOptions.MSS, TCPSignature.MSS_DEFAULT)
         scale = tcp_options_dict.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
-        print(scale)
         window_size = tcp_layer.window
         
         options_layout = ':'.join([TCPOptions.convert(option[0]) for option in tcp_options_list])

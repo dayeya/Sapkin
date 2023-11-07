@@ -54,7 +54,7 @@ class SessionHandler(Thread):
         """
         
         self._running = True
-        print("Handler is listening!")
+        print("[+] Handler is listening!")
         
         while self._running:
             self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", iface=IFACE, prn=self.packet_handler)
@@ -65,9 +65,9 @@ class SessionHandler(Thread):
         """
         wrapper = PacketWrapper(packet)
         if self._should_discover(wrapper):
-            print(f"Found SYN or SYN_ACK src: {wrapper.packet[IP].src}, to: {wrapper.packet[TCP].dport}")
+            print(f"[+] Found SYN or SYN_ACK src: {wrapper.packet[IP].src}, to: {wrapper.packet[TCP].dport}")
             signature = wrapper.create_tcp_signature()
-            print(f'{signature.format()}')
+            print(f'[+] {signature.format()}')
                 
     def _should_discover(self, wrapper: PacketWrapper) -> bool:
         """
