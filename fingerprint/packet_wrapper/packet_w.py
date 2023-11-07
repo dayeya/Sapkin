@@ -9,9 +9,9 @@ from ..signatures import TCPSignature, TCPOptions, Flags
 from ..signatures import MTUSignature
 from ..signatures import HTTPSignature
 
-UTF = 'utf-8'
 Signature = Union[TCPSignature, MTUSignature, HTTPSignature]
 
+UTF = 'utf-8'
 HEXA: dict[str: bytes] = {
         Flags.DF_SET                      : 0x00000002, 
         Flags.DF_SET_NON_ZERO_ID          : 0x00000004, 
@@ -98,7 +98,8 @@ class PacketWrapper:
     def _get_special_flags(self) -> List[str]:
         """
         Scan the packet and identifies its special flags (IP, TCP) headers.
-
+        Note: last 4 special flags arent urgent to implement, maybe in the future.
+        
         Returns:
             List[str]: list of special flags, specified in tcp_signature.py
         """
@@ -112,42 +113,38 @@ class PacketWrapper:
         if ip_layer.flags & HEXA[Flags.DF_SET] and ip_layer.id:
             special_flags.append(Flags.DF_SET_NON_ZERO_ID)  
              
-        if not ip_layer.flags & HEXA[Flags.DF_SET] and not ip_layer.id:
+        if ip_layer.flags & HEXA[Flags.DF_SET] and not ip_layer.id:
             special_flags.append(Flags.DF_NOT_SET_ID_ZERO)
+                    
+        if ip_layer.flags & HEXA[Flags.MZERO]:
+            special_flags.append(Flags.MZERO)
             
         if tcp_layer.flags & (Flags.CWR | Flags.ECE): 
             special_flags.append(Flags.ECN)
-        
-        if not ip_layer.flags & HEXA[Flags.MZERO]:
-            special_flags.append(Flags.MZERO)
             
         # Will not add flow as p0f doesnt utilize this in this context.
         if ip_layer.version != 4:
             if ip_layer.version & 0xFFFF:
                 special_flags.append(Flags.NON_ZERO_FLOW_ID)
-        
-        # Sequence number isnt 0.
-        if not tcp_layer.seq:
+                
+        if tcp_layer.seq == 0:
             special_flags.append(Flags.ZERO_SEQ)
-        
-        # ACK check.
-        if tcp_layer.flags & Flags.ACK:
+
+        if tcp_layer.flags & Flags.ACK and tcp_layer.ack > 0:
             special_flags.append(Flags.ACK_ZERO_FLAG_SET)
-        else:
-            special_flags.append(Flags.NON_ZERO_POSITIVE_ACK)
         
-        # URG check.    
+        if tcp_layer.flags & Flags.ACK and tcp_layer.ack == 0:
+            special_flags.append(Flags.NON_ZERO_POSITIVE_ACK)
+  
         if tcp_layer.flags & Flags.URG:
             special_flags.append(Flags.URG_FLAG_SET)
         else:
-            special_flags.append(Flags.NON_ZERO_URG_NOT_SET)
-        
-        # PSH check.    
+            if tcp_layer.urgptr > 0:
+                special_flags.append(Flags.NON_ZERO_URG_NOT_SET)
+    
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
-        
-        # Add consideration for last 4 missing special flags (not urgent)! #
-        
+
         return special_flags
         
     def create_tcp_signature(self) -> TCPSignature:
@@ -169,13 +166,14 @@ class PacketWrapper:
         olen = len(ip_layer.options)
         
         # tcp options fields.
-        mss = tcp_options_dict.get(TCPOptions.MSS, TCPSignature.MSS_DEFAULT)
+        mss   = tcp_options_dict.get(TCPOptions.MSS, TCPSignature.MSS_DEFAULT)
         scale = tcp_options_dict.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
+        print(scale)
         window_size = tcp_layer.window
         
-        payload_size = len(tcp_layer.payload)
         options_layout = ':'.join([TCPOptions.convert(option[0]) for option in tcp_options_list])
         special_flags  = ':'.join(self._get_special_flags())
+        payload_size = len(tcp_layer.payload)
         
         return TCPSignature(
             version,
