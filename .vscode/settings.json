@@ -3,6 +3,8 @@
     "python.analysis.autoSearchPaths": true,
     "python.analysis.extraPaths": [
         "./Server/module",
-        "./common"
+        "./Server/session_handler",
+        "./common",
+        ".database"
     ]
 }

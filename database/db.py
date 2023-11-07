@@ -1,5 +1,5 @@
 from typing import Iterator
-from loaders import TCPLoader, MTULoader, HTTPLoader
+from .loaders import TCPLoader, MTULoader, HTTPLoader
 
 class Database:
     
@@ -40,3 +40,5 @@ class Database:
                     .load()
                     .items()
                     )
+        
+OSF_DATABASE = Database()

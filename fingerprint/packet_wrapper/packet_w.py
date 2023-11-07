@@ -1,5 +1,3 @@
-from typing import Union
-
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
@@ -8,7 +6,8 @@ from scapy.layers.http import HTTPRequest, HTTPResponse
 from ..signatures import TCPSignature, TCPOptions, Flags
 from ..signatures import MTUSignature
 from ..signatures import HTTPSignature
-
+    
+from typing import Union
 Signature = Union[TCPSignature, MTUSignature, HTTPSignature]
 
 UTF = 'utf-8'
@@ -68,10 +67,8 @@ class PacketWrapper:
         Returns:
             dict: TCP options.
         """
-        
         if not self.check_tcp():
             raise Exception(f"{self} doesnt have a TCP layer.")
-        
         try:
             op = self.packet[TCP].options
             return {TCPOptions.convert(option): data for option, data in op}
