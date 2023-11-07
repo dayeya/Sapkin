@@ -1,3 +1,3 @@
 # Sapkin_Finger_Printer
 
-A cool fingerprinter!, work in progress...
+LAN-wise application to passive OS fingerprint online clients. Credit (C) to p0f.
