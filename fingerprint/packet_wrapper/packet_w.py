@@ -173,8 +173,8 @@ class PacketWrapper:
         window_size = tcp_layer.window
         
         payload_size = len(tcp_layer.payload)
-        options_layout = ':'.join(tcp_options.keys())
-        special_flags = ':'.join(self._get_special_flags())
+        options_layout = ':'.join(list(tcp_options.keys()))
+        special_flags  = ':'.join(self._get_special_flags())
         
         return TCPSignature(
             version,
@@ -193,6 +193,6 @@ class PacketWrapper:
         Constructs a PacketWrapper string representation.
 
         Returns:
-            str: String of self._packet.
+            str: String of self.packet
         """
         return self.packet.summary()

@@ -91,15 +91,15 @@ class TCPSignature:
         Returns:
             str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
         """
-        pass
+        return f'{self.version}:{self.ttl}:{self.op_len}:{self.mss}:{self.win_size},{self.scale}:{self.options}:{self.flags}:{self.payload_size}'
+        
     
     def __str__(self) -> str:
         """
         Returns:
             str: String representation of self
         """
-        return f"TCPSignature: " \
-               f"version: {self.version}, " \
+        return f"version: {self.version}, " \
                f"ttl: {self.ttl}, " \
                f"op_len: {self.op_len}, " \
                f"mss: {self.mss}, " \
