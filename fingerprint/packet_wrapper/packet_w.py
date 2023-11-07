@@ -165,7 +165,7 @@ class PacketWrapper:
         
         # Handle options.
         tcp_options = self._tcp_options()
-        olen = len(tcp_options)
+        olen = len(ip_layer.options)
         
         # tcp options fields.
         mss = tcp_options.get(TCPOptions.MSS, TCPSignature.MSS_DEFAULT)

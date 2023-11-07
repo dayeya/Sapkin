@@ -46,8 +46,8 @@ class TCPOptions:
 
 class TCPSignature:
     
-    MSS_DEFAULT = "*"
-    WINDOW_SCALE_DEFAULT = "*"
+    MSS_DEFAULT = str(0)
+    WINDOW_SCALE_DEFAULT = str(0)
 
     def __init__(self, 
                  version: IP_Version="ALL", 
@@ -80,7 +80,7 @@ class TCPSignature:
         self.mss = mss
         self.win_size = win_size
         self.scale = scale
-        self.options = options_layout if op_len > 0 else []
+        self.options = options_layout if options_layout else []
         self.flags = special_flags if special_flags else {}
         self.payload_size = payload_size
         
