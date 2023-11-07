@@ -59,9 +59,11 @@ class SessionHandler(Thread):
             self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", prn=self.packet_handler)
      
     def packet_handler(self, p: ScapyPacket) -> None:
-        print(p.summary())
-        wp = PacketWrapper(p)
-        print(f'Has tcp layer: {wp.check_tcp()}')
+        
+        """
+        Add packet handling.
+        """
+        pass
                 
     def _should_discover(self, p: PacketWrapper) -> bool:
         """

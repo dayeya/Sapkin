@@ -50,29 +50,29 @@ class PacketWrapper:
         Returns:
             bool: Has a TCP layer.
         """
-        return bool(self._packet.haslayer(TCP))
+        return bool(self._packet._packet.haslayer(TCP))
     
     def check_http(self) -> bool:
         """
-        Checks if self is a valid HTTP packet.
+        Checks if self _packet.is a valid HTTP packet.
 
         Returns:
             bool: has HTTP layer.
         """
-        return bool(self.haslayer[HTTPRequest] or self.haslayer[HTTPResponse])
+        return bool(self._packet.haslayer[HTTPRequest] or self._packet.haslayer[HTTPResponse])
     
     def _tcp_options(self) -> dict:
         """
         Gets the options from self
-
+        
         Returns:
             dict: TCP options.
         """
         
         if not self.check_tcp():
-            raise Exception(f"{self} doesnt have a TCP layer.")
+            raise Exception(f"{self}_packet. doesnt have a TCP layer.")
         
-        op = self[TCP].getfield_and_val('options')
+        op = self._packet[TCP].getfield_and_val('options')
         tcp_options = {option: val for option, val in op}
         return tcp_options
         
@@ -81,15 +81,15 @@ class PacketWrapper:
         Checks the most possible ittl of a packet.
 
         Returns:
-            int: guess of ittl of self.
+            int: guess of ittl of self._packet.
         """
-        cur_ttl = self[IP].ttl
-        if cur_ttl <= 32: return 32 - cur_ttl
-        if cur_ttl <= 64: return 64 - cur_ttl
-        if cur_ttl <= 128: return 128 - cur_ttl
+        cur_ttl = self._packet[IP].ttl
+        if cur_ttl <= 32: return 32
+        if cur_ttl <= 64: return 64
+        if cur_ttl <= 128: return 128
         
         # last OS default is 255.
-        return 255 - cur_ttl
+        return 255
     
     def _get_special_flags(self) -> List[str]:
         """
@@ -99,8 +99,8 @@ class PacketWrapper:
             List[str]: list of special flags, specified in tcp_signature.py
         """
         special_flags: List[str] = []
-        ip_layer  = self.getlayer(cls=IP)
-        tcp_layer = self.getlayer(cls=TCP)
+        ip_layer  = self._packet.getlayer(cls=IP)
+        tcp_layer = self._packet.getlayer(cls=TCP)
         
         if ip_layer.flags & HEXA[Flags.DF_SET]:
             special_flags.append(Flags.DF_SET)
@@ -144,7 +144,7 @@ class PacketWrapper:
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
         
-        tcp_options = self._tcp_options()
+        tcp_options = self._packet._tcp_options()
         scale = tcp_options.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
         if scale > 14:
             special_flags.append(Flags.EXCESSIVE_WSCALE)
@@ -160,14 +160,14 @@ class PacketWrapper:
         Returns:
             TCPSignature: TCPSignature.
         """
-        ip_layer  = self.getlayer(cls=IP)
-        tcp_layer = self.getlayer(cls=TCP)
+        ip_layer  = self._packet.getlayer(cls=IP)
+        tcp_layer = self._packet.getlayer(cls=TCP)
         
         version = ip_layer.version
-        ittl = self._guess_ittl()
+        ittl = self._packet._guess_ittl()
         
         # Handle options.
-        tcp_options = self._tcp_options()
+        tcp_options = self._packet._tcp_options()
         olen = len(tcp_options)
         
         # tcp options fields.
@@ -176,7 +176,7 @@ class PacketWrapper:
         window_size = tcp_layer.window
         
         options_layout = ':'.join([option for option in tcp_options.keys()])
-        special_flags = ':'.join(self._get_special_flags()) # QUIRKS in p0f
+        special_flags = ':'.join(self._packet._get_special_flags()) # QUIRKS in p0f
         
         payload_size = len(tcp_layer.payload)
         
@@ -197,6 +197,6 @@ class PacketWrapper:
         Constructs a PacketWrapper string representation.
 
         Returns:
-            str: String of self.
+            str: String of self._packet.
         """
-        return self.summary()
+        return self._packet.summary()
