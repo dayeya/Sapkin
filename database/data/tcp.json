@@ -8,6 +8,33 @@
     "Windwos 7, 8, 10, or 11": ["ALL:128:0:ALL:8192,0:mss,nop,nop,sok:df,id+:0",
                                 "ALL:128:0:ALL:8192,2:mss,nop,ws,nop,nop,sok:df,id+:0",
                                 "ALL:128:0:ALL:8192,8:mss,nop,ws,nop,nop,sok:df,id+:0",
-                                "ALL:128:0:ALL:8192,2:mss,nop,ws,sok,ts:df,id+:0"]
+                                "ALL:128:0:ALL:8192,2:mss,nop,ws,sok,ts:df,id+:0"],
+                              
+    "Linux 3.11 and newer": ["ALL:64:0:ALL:mss*20,10:mss,sok,ts,nop,ws:df,id+:0",
+                             "ALL:64:0:ALL:mss*20,7:mss,sok,ts,nop,ws:df,id+:0"],
+                                
+    "Linux 3.1 to 3.10": ["ALL:64:0:ALL:mss*10,4:mss,sok,ts,nop,ws:df,id+:0",
+                          "ALL:64:0:ALL:mss*10,5:mss,sok,ts,nop,ws:df,id+:0",
+                          "ALL:64:0:ALL:mss*10,6:mss,sok,ts,nop,ws:df,id+:0",
+                          "ALL:64:0:ALL:mss*10,7:mss,sok,ts,nop,ws:df,id+:0"],
+    
+    "Linux 2.6.x": ["ALL:64:0:ALL:mss*4,6:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*4,7:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*4,8:mss,sok,ts,nop,ws:df,id+:0"],
+    
+    "Linux 2.4.x": ["ALL:64:0:ALL:mss*4,0:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*4,1:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*4,2:mss,sok,ts,nop,ws:df,id+:0"],
+    
+    "Linux 2.2.x": ["ALL:64:0:ALL:mss*11,0:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*20,0:mss,sok,ts,nop,ws:df,id+:0",
+                    "ALL:64:0:ALL:mss*22,0:mss,sok,ts,nop,ws:df,id+:0"],
+    
+    "Linux 2.0": ["ALL:64:0:ALL:mss*12,0:mss::0",
+                  "ALL:64:0:ALL:16384,0:mss::0"],
+    
+    "Linux 2.6.x (Google crawler)": ["4:64:0:1430:mss*4,6:mss,sok,ts,nop,ws::0"],
+
+    "Linux (Android)": ["ALL:64:0:ALL:mss*44,1:mss,sok,ts,nop,ws:df,id+:0",
+                        "ALL:64:0:ALL:mss*44,3:mss,sok,ts,nop,ws:df,id+:0"]
 }
- 
