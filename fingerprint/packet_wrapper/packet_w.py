@@ -1,8 +1,8 @@
 from typing import Union
 
 from scapy.all import *
+from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
-from scapy.layers.inet import TCP, IP
 from scapy.layers.http import HTTPRequest, HTTPResponse
 
 from ..signatures import TCPSignature, TCPOptions, Flags
@@ -12,7 +12,6 @@ from ..signatures import HTTPSignature
 UTF = 'utf-8'
 Signature = Union[TCPSignature, MTUSignature, HTTPSignature]
 
-        
 HEXA: dict[str: bytes] = {
         Flags.DF_SET                      : 0x00000002, 
         Flags.DF_SET_NON_ZERO_ID          : 0x00000004, 
@@ -35,28 +34,32 @@ HEXA: dict[str: bytes] = {
         Flags.MALFORMED_OP                : 0x1000000
 }
 
-class PacketWrapper(ScapyPacket):
+class PacketWrapper:
     
     def __init__(self, p: ScapyPacket) -> None:
-        self = p.copy()
-    
-    def _check_tcp(self) -> bool:
         """
-        Checks if self, is a valid TCP packet.
+        PacketWrapper object, wraps p with special functions.
 
-        Returns:
-            bool: has TCP layer.
+        Args:
+            p (ScapyPacket): packet we sniffed.
         """
-        return self.haslayer(TCP)
+        self._packet = p.copy()
+
+    def check_tcp(self) -> bool:
+        """
+        Returns:
+            bool: Has a TCP layer.
+        """
+        return bool(self._packet.haslayer(TCP))
     
-    def _check_http(self) -> bool:
+    def check_http(self) -> bool:
         """
         Checks if self is a valid HTTP packet.
 
         Returns:
             bool: has HTTP layer.
         """
-        return self.haslayer[HTTPRequest]
+        return bool(self.haslayer[HTTPRequest] or self.haslayer[HTTPResponse])
     
     def _tcp_options(self) -> dict:
         """
@@ -66,7 +69,7 @@ class PacketWrapper(ScapyPacket):
             dict: TCP options.
         """
         
-        if not self._check_tcp():
+        if not self.check_tcp():
             raise Exception(f"{self} doesnt have a TCP layer.")
         
         op = self[TCP].getfield_and_val('options')

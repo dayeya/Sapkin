@@ -4,7 +4,6 @@ import pickle
 from ast import List
 from socket import *
 from threading import Thread, Lock
-
 from session_handler import SessionHandler
 
 try: 
@@ -46,9 +45,6 @@ class Module:
         self._sessions_thread.start()
         
         while True:
-            
-            print("B")
-            # SERVER_SOCK of client.
             fp_server_sock, addr = self.main_sock.accept()
             
             # connection with the SERVER_SOCK of the client.

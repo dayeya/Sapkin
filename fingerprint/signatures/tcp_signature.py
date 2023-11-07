@@ -4,10 +4,6 @@ from typing import List, TypeVar
 IP_Version = TypeVar("IP_Version", int, str)
 
 class Flags:
-    """
-    Special flags in IP and TCP headers.
-    """
-    
     # Core TCP flags.
     FIN = 0x01
     SYN = 0x02

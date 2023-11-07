@@ -1,20 +1,27 @@
+import os
+import sys
 from scapy.all import *
-from scapy.layers.inet import TCP, IP
-from scapy.all import Packet as ScapyPacket
+from scapy.all import conf
 from threading import Thread
+
+from scapy.layers.inet import IP, TCP
+from scapy.all import Packet as ScapyPacket
 
 try: 
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
     sys.path.append(parent_dir)
+    
+    from fingerprint import Flags
     from fingerprint import PacketWrapper
     
 except ModuleNotFoundError as e:
     raise Exception("Check project dir as fingerprint was not found.")
 
-FILTER = f"tcp"
+conf.verbose = 0
+conf.sniff_promisc = 0
+
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
-ADDRESS = ('localhost', 60000)
 
 class SessionHandler(Thread):
     
@@ -23,7 +30,6 @@ class SessionHandler(Thread):
         TCPListener object, listens to TCP connections with the server.
         """
         self._running = False
-        self._packets = None
         
     def _is_listening(self) -> bool:
         """
@@ -43,16 +49,34 @@ class SessionHandler(Thread):
     
     def listen(self) -> None:
         """
-        Listens to packet,targets TCP Hanhshakes, SYN, SYN+ACK packets.
+        Listens to packet, targets TCP Hanhshakes, SYN, SYN_ACK packets.
         """
         
         self._running = True
         print("Handler is listening!")
         
         while self._running:
-            self._packets = sniff(count=PACKET_AT_A_TIME, filter=FILTER, prn=self.packet_handler)
-    
+            self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", prn=self.packet_handler)
+     
     def packet_handler(self, p: ScapyPacket) -> None:
-        print(f'Captured packet: {p.summary()}')
-        
+        print(p.summary())
+        wp = PacketWrapper(p)
+        print(f'Has tcp layer: {wp.check_tcp()}')
+                
+    def _should_discover(self, p: PacketWrapper) -> bool:
+        """
+        Check if p should be fingerprinted.
 
+        Args:
+            p (PacketWrapper): packet wrapper
+
+        Returns:
+            bool: p is SYN or SYN_ACK.
+        """
+        if not p.check_tcp():
+            raise Exception("Sniffed wrong packet!")
+        
+        # if p has synor syn + ack on.
+        tcp_layer = p.getlayer(TCP)
+        return (tcp_layer.flags & Flags.SYN) or (tcp_layer.flags & Flags.SYN 
+                                                 and tcp_layer.flags & Flags.ACK)
