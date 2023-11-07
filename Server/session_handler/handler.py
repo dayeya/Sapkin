@@ -20,6 +20,7 @@ except ModuleNotFoundError as e:
 conf.verbose = 0
 conf.sniff_promisc = 0
 
+IFACE = "Software Loopback Interface 1"
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
 
@@ -56,7 +57,7 @@ class SessionHandler(Thread):
         print("Handler is listening!")
         
         while self._running:
-            self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", prn=self.packet_handler)
+            self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", iface=IFACE, prn=self.packet_handler)
      
     def packet_handler(self, packet: ScapyPacket) -> None:
         """
