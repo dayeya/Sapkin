@@ -58,27 +58,28 @@ class SessionHandler(Thread):
         while self._running:
             self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", prn=self.packet_handler)
      
-    def packet_handler(self, p: ScapyPacket) -> None:
-        
+    def packet_handler(self, packet: ScapyPacket) -> None:
         """
         Add packet handling.
         """
-        pass
+        wrapper = PacketWrapper(packet)
+        if self._should_discover(wrapper):
+            print(f"Found SYN or SYN_ACK src: {wrapper.packet[IP].src}, to: {wrapper.packet[TCP].dport}")
                 
-    def _should_discover(self, p: PacketWrapper) -> bool:
+    def _should_discover(self, wrapper: PacketWrapper) -> bool:
         """
-        Check if p should be fingerprinted.
+        Check if a packet should be fingerprinted.
 
         Args:
-            p (PacketWrapper): packet wrapper
+            wrapper (PacketWrapper): packet wrapper
 
         Returns:
-            bool: p is SYN or SYN_ACK.
+            bool: packet inside wrapper is SYN or SYN_ACK.
         """
-        if not p.check_tcp():
-            raise Exception("Sniffed wrong packet!")
+        if not wrapper.check_tcp():
+            return False
         
         # if p has synor syn + ack on.
-        tcp_layer = p.getlayer(TCP)
+        tcp_layer = wrapper.packet.getlayer(cls=TCP)
         return (tcp_layer.flags & Flags.SYN) or (tcp_layer.flags & Flags.SYN 
-                                                 and tcp_layer.flags & Flags.ACK)
+                                             and tcp_layer.flags & Flags.ACK)

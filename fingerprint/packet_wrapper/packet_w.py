@@ -43,14 +43,14 @@ class PacketWrapper:
         Args:
             p (ScapyPacket): packet we sniffed.
         """
-        self._packet = p.copy()
+        self.packet = p.copy()
 
     def check_tcp(self) -> bool:
         """
         Returns:
             bool: Has a TCP layer.
         """
-        return bool(self._packet._packet.haslayer(TCP))
+        return bool(self.packet.haslayer(TCP))
     
     def check_http(self) -> bool:
         """
@@ -59,7 +59,7 @@ class PacketWrapper:
         Returns:
             bool: has HTTP layer.
         """
-        return bool(self._packet.haslayer[HTTPRequest] or self._packet.haslayer[HTTPResponse])
+        return self.packet.haslayer[HTTPRequest] or self.packet.haslayer[HTTPResponse]
     
     def _tcp_options(self) -> dict:
         """
@@ -70,9 +70,9 @@ class PacketWrapper:
         """
         
         if not self.check_tcp():
-            raise Exception(f"{self}_packet. doesnt have a TCP layer.")
+            raise Exception(f"{self} doesnt have a TCP layer.")
         
-        op = self._packet[TCP].getfield_and_val('options')
+        op = self.packet[TCP].getfield_and_val('options')
         tcp_options = {option: val for option, val in op}
         return tcp_options
         
@@ -83,7 +83,7 @@ class PacketWrapper:
         Returns:
             int: guess of ittl of self._packet.
         """
-        cur_ttl = self._packet[IP].ttl
+        cur_ttl = self.packet[IP].ttl
         if cur_ttl <= 32: return 32
         if cur_ttl <= 64: return 64
         if cur_ttl <= 128: return 128
@@ -99,15 +99,15 @@ class PacketWrapper:
             List[str]: list of special flags, specified in tcp_signature.py
         """
         special_flags: List[str] = []
-        ip_layer  = self._packet.getlayer(cls=IP)
-        tcp_layer = self._packet.getlayer(cls=TCP)
+        ip_layer  = self.packet.getlayer(cls=IP)
+        tcp_layer = self.packet.getlayer(cls=TCP)
         
         if ip_layer.flags & HEXA[Flags.DF_SET]:
             special_flags.append(Flags.DF_SET)
         
         if ip_layer.flags & HEXA[Flags.DF_SET] and ip_layer.id:
             special_flags.append(Flags.DF_SET_NON_ZERO_ID)  
-            
+             
         if ~(ip_layer.flags & HEXA[Flags.DF_SET]) and ~ip_layer.id:
             special_flags.append(Flags.DF_NOT_SET_ID_ZERO)
             
@@ -129,14 +129,12 @@ class PacketWrapper:
         # ACK check.
         if tcp_layer.flags & Flags.ACK:
             special_flags.append(Flags.ACK_ZERO_FLAG_SET)
-           
         else:
             special_flags.append(Flags.NON_ZERO_POSITIVE_ACK)
         
         # URG check.    
         if tcp_layer.flags & Flags.URG:
             special_flags.append(Flags.URG_FLAG_SET)
-        
         else:
             special_flags.append(Flags.NON_ZERO_URG_NOT_SET)
         
@@ -144,7 +142,7 @@ class PacketWrapper:
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
         
-        tcp_options = self._packet._tcp_options()
+        tcp_options = self._tcp_options()
         scale = tcp_options.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
         if scale > 14:
             special_flags.append(Flags.EXCESSIVE_WSCALE)
@@ -160,14 +158,14 @@ class PacketWrapper:
         Returns:
             TCPSignature: TCPSignature.
         """
-        ip_layer  = self._packet.getlayer(cls=IP)
-        tcp_layer = self._packet.getlayer(cls=TCP)
+        ip_layer  = self.packet.getlayer(cls=IP)
+        tcp_layer = self.packet.getlayer(cls=TCP)
         
         version = ip_layer.version
-        ittl = self._packet._guess_ittl()
+        ittl = self.packet._guess_ittl()
         
         # Handle options.
-        tcp_options = self._packet._tcp_options()
+        tcp_options = self.packet._tcp_options()
         olen = len(tcp_options)
         
         # tcp options fields.
@@ -176,8 +174,7 @@ class PacketWrapper:
         window_size = tcp_layer.window
         
         options_layout = ':'.join([option for option in tcp_options.keys()])
-        special_flags = ':'.join(self._packet._get_special_flags()) # QUIRKS in p0f
-        
+        special_flags = ':'.join(self._get_special_flags()) # QUIRKS in p0f
         payload_size = len(tcp_layer.payload)
         
         return TCPSignature(
@@ -199,4 +196,4 @@ class PacketWrapper:
         Returns:
             str: String of self._packet.
         """
-        return self._packet.summary()
+        return self.packet.summary()
