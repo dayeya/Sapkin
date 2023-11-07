@@ -83,6 +83,15 @@ class TCPSignature:
         self.options = options_layout if op_len > 0 else []
         self.flags = special_flags if special_flags else {}
         self.payload_size = payload_size
+        
+    def format(self) -> str:
+        """
+        Will format self into a specific str.
+
+        Returns:
+            str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
+        """
+        pass
     
     def __str__(self) -> str:
         """

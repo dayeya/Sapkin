@@ -72,9 +72,13 @@ class PacketWrapper:
         if not self.check_tcp():
             raise Exception(f"{self} doesnt have a TCP layer.")
         
-        op = self.packet[TCP].getfield_and_val('options')
-        tcp_options = {option: val for option, val in op}
-        return tcp_options
+        try:
+            op = self.packet[TCP].options
+            return {option: data for option, data in op}
+        
+        except Exception as e:
+            raise Exception(f"Unable to retrieve TCP options. {e}")
+        
         
     def _guess_ittl(self) -> int:
         """
@@ -108,13 +112,13 @@ class PacketWrapper:
         if ip_layer.flags & HEXA[Flags.DF_SET] and ip_layer.id:
             special_flags.append(Flags.DF_SET_NON_ZERO_ID)  
              
-        if ~(ip_layer.flags & HEXA[Flags.DF_SET]) and ~ip_layer.id:
+        if not ip_layer.flags & HEXA[Flags.DF_SET] and not ip_layer.id:
             special_flags.append(Flags.DF_NOT_SET_ID_ZERO)
             
         if tcp_layer.flags & (Flags.CWR | Flags.ECE): 
             special_flags.append(Flags.ECN)
         
-        if ~(ip_layer.flags & HEXA[Flags.MZERO]):
+        if not ip_layer.flags & HEXA[Flags.MZERO]:
             special_flags.append(Flags.MZERO)
             
         # Will not add flow as p0f doesnt utilize this in this context.
@@ -142,16 +146,11 @@ class PacketWrapper:
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
         
-        tcp_options = self._tcp_options()
-        scale = tcp_options.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
-        if scale > 14:
-            special_flags.append(Flags.EXCESSIVE_WSCALE)
-            
         # Add consideration for last 4 missing special flags (not urgent)! #
         
         return special_flags
         
-    def _create_tcp_signature(self) -> TCPSignature:
+    def create_tcp_signature(self) -> TCPSignature:
         """
         Creates a TCP signature from self
 
@@ -162,10 +161,10 @@ class PacketWrapper:
         tcp_layer = self.packet.getlayer(cls=TCP)
         
         version = ip_layer.version
-        ittl = self.packet._guess_ittl()
+        ittl = self._guess_ittl()
         
         # Handle options.
-        tcp_options = self.packet._tcp_options()
+        tcp_options = self._tcp_options()
         olen = len(tcp_options)
         
         # tcp options fields.
@@ -173,9 +172,9 @@ class PacketWrapper:
         scale = tcp_options.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
         window_size = tcp_layer.window
         
-        options_layout = ':'.join([option for option in tcp_options.keys()])
-        special_flags = ':'.join(self._get_special_flags()) # QUIRKS in p0f
         payload_size = len(tcp_layer.payload)
+        options_layout = ':'.join(tcp_options.keys())
+        special_flags = ':'.join(self._get_special_flags())
         
         return TCPSignature(
             version,
