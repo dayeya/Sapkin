@@ -184,20 +184,19 @@ class PacketWrapper:
         Returns:
             MTUSignature: MTUSignature.
         """
-
         mtu_value: int = -1
         link: Union[NetworkInterface, str] = self.sniffed_link() # Interface name.
         try:
             if self.check_tcp():
                 op = self._tcp_options()
                 mtu_value = op["mss"] + len(self.packet[TCP])
-                print("NIIIIIIIIIIIIIIIIIIIIIIIIIIIIIKKKKKEEEEEEEEEEEEEEEEE ", link, mtu_value)
                 return MTUSignature(link, [int(mtu_value)])
         except Exception as e:
             print(f'[!] Error: {e}')
             mtu_value = INTERFACES[link].mtu
-            print("MMMMMMMMMMMMTTTTTTTTTTTTTTTTTTTUUUUUUUUUUUUUUUUUUUUUUUUUUU ", link, mtu_value)
             return MTUSignature(link, mtu_value)
+        
+        # Blank MTUSignature.
         return  MTUSignature()
     
     def tcp_sig(self) -> TCPSignature:
