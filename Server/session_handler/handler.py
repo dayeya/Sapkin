@@ -19,7 +19,6 @@ except ModuleNotFoundError as e:
 
 conf.verbose = 0
 conf.sniff_promisc = 0
-
 IFACE = "Software Loopback Interface 1"
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
@@ -52,6 +51,7 @@ class SessionHandler(Thread):
         """
         Listens to packet, targets TCP Hanhshakes, SYN, SYN_ACK packets.
         """
+        print(conf.ifaces)
         
         self._running = True
         print("Handler is listening!")
@@ -64,10 +64,12 @@ class SessionHandler(Thread):
         Add packet handling.
         """
         wrapper = PacketWrapper(packet)
+        print("MTU sig: ",wrapper.create_mtu_signature())
         if self._should_discover(wrapper):
             print(f"Found SYN or SYN_ACK src: {wrapper.packet[IP].src}, to: {wrapper.packet[TCP].dport}")
             signature = wrapper.create_tcp_signature()
             print(f'{signature.format()}')
+            
                 
     def _should_discover(self, wrapper: PacketWrapper) -> bool:
         """
