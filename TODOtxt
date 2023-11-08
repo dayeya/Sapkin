@@ -1,4 +1,6 @@
 * Handle clients in the SessionHandler.
 * Thread to every new client, and all started threads.
 * Connect the SessionHandler to the Server.
-* Finish TCP fingerprinting.
+* Benchmark TCP fingerprinting.
+* Add GUI
+* Finish README.md
