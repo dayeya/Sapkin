@@ -59,7 +59,7 @@ class SynHandler(Thread):
                 
                 # Send syn.
                 print('[+] Sending syn...')
-                self._test()
+                self._send_syn()
 
     def _send_syn(self) -> None:
         """
@@ -72,19 +72,3 @@ class SynHandler(Thread):
         syn_packet = ip / tcp
         self.sock.send(syn_packet)
         print('[+] Syn sent!')
-    
-    @staticmethod
-    def _test() -> None:
-        """
-        Sends a single syn packet.
-        """
-        tests: List[WindowsTest] = [
-            WindowsTest(ittl=128, seq=0x12345678, options=[('MSS', 1460), ('NOP', None), ('NOP', None), ('SAckOK', '')]),
-            WindowsTest(ittl=128, seq=0x12345678, options=[('MSS', 1460), ('NOP', None), ('WScale', 2), ('NOP', None), ('NOP', None), ('SAckOK', '')]),
-            WindowsTest(ittl=128, seq=0x12345678, options=[('MSS', 1460), ('NOP', None), ('WScale', 8), ('NOP', None), ('NOP', None), ('SAckOK', '')]),
-            WindowsTest(ittl=128, seq=0x12345678, options=[('MSS', 1460), ('NOP', None), ('WScale', 2), ('SAckOK', ''), ('Timestamp', (100000, 0))])
-        ]
-        
-        for t in tests:
-            t.send_fuzzy_syn()
-        print('[+] Sent all fuzyy syn packets!')
