@@ -102,4 +102,4 @@ class SessionHandler:
             for db_signature in map(lambda s: TCPSignature.from_str(s), signatures):
                 if signature == db_signature:
                     return os
-        return "Unknown OS"
+        return "Anonymous OS"
