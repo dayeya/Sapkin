@@ -53,8 +53,6 @@ class SessionHandler:
         """
         Listens to packet, targets TCP Hanhshakes, SYN, SYN_ACK packets.
         """
-        print(conf.ifaces)
-        
         self._running = True
         print("[+] Handler is listening!")
         
@@ -101,7 +99,7 @@ class SessionHandler:
         print(f'[+] Crafted a TCP signature: {signature.raw()}')
 
         for os, signatures in OSF_DATABASE.iter_tcp():
-            for db_signature in [TCPSignature.from_str(s) for s in signatures]:
+            for db_signature in map(lambda s: TCPSignature.from_str(s), signatures):
                 if signature == db_signature:
                     return os
-        return "Some OS :/"
+        return "Unknown OS"
