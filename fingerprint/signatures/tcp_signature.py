@@ -2,6 +2,7 @@ from typing import List, TypeVar
 
 # version fields can be 4, 6 or ALL.
 IP_Version = TypeVar("IP_Version", int, str)
+MSS_Type = TypeVar("MSS_Type", int, str)
 TCPSig = TypeVar("TCPSig", bound='TCPSignature')
 
 class Flags:
@@ -48,7 +49,7 @@ class TCPOptions:
         "WScale": "ws",
         "SAckOK": "sok",
         "SAck": "sack",
-        "TS": "ts"
+        "Timestamp": "ts"
     }
     
     @staticmethod
@@ -71,14 +72,14 @@ class TCPSignature:
 
     def __init__(self, 
                  version: IP_Version="ALL", 
-                 ttl=128, 
-                 op_len=0, 
-                 mss=0, 
-                 win_size=0, 
-                 scale=0, 
+                 ttl: int=128, 
+                 op_len: int=0, 
+                 mss: MSS_Type=0, 
+                 win_size: int=0, 
+                 scale: int=0, 
                  options_layout: List[str]=None, 
                  special_flags: dict=None, 
-                 payload_size=0
+                 payload_size: str=0
             ) -> None:
         """
         TCPSignature object.
@@ -114,10 +115,10 @@ class TCPSignature:
         return f'{self.version}:{self.ttl}:{self.op_len}:{self.mss}:' \
                f'{self.win_size},{self.scale}:{self.options}:{self.flags}:{self.payload_size}'
                
-    def fields(self) -> str:
+    def fields(self) -> tuple:
         """
         Returns:
-            str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
+            tuple: (....) All fields.
         """
         return self.version, self.ttl, self.op_len, self.mss, \
                self.win_size, self.scale, self.options, self.flags, self.payload_size
@@ -130,7 +131,7 @@ class TCPSignature:
         Returns:
             bool: is self equal to sig.
         """
-        if isinstance(other, TCPSignature): 
+        if isinstance(other, TCPSignature):
             return (
                 (self.version == other.version or other.version == 'ALL') and
                 (self.mss == other.mss or other.mss == 'ALL') and
@@ -159,6 +160,17 @@ class TCPSignature:
         version, ittl, op_len, mss, ws_pair, \
         options_layout, special_flags, payload_size = tuple(sig.split(":"))
         win_size, scale = ws_pair.split(',')
+                    
+        if mss != 'ALL':
+            mss = int(mss)
+            
+        if 'mss' in win_size:
+            if isinstance(mss, int): 
+                win_size = mss * int(win_size[4:])
+        else:
+            win_size = int(win_size)
+
+        ittl, op_len, scale = int(ittl), int(op_len), int(scale)
         
         return TCPSignature(
             version,

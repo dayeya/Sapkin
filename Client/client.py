@@ -3,12 +3,12 @@ from module import Module
 
 class Client:
     
-    def __init__(self, mod) -> None:
+    def __init__(self) -> None:
         """
         Client object.
         :param mod:
         """
-        self.module = mod
+        self.module = Module()
 
     def start(self) -> None:
         """
@@ -19,7 +19,6 @@ class Client:
 
 
 if __name__ == "__main__":
-    module = Module()
-    client = Client(module)
+    client = Client()
     client.start()
 

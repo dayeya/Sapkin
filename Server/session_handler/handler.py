@@ -63,7 +63,7 @@ class SessionHandler:
         wrapper = PacketWrapper(packet)
         if self._should_try(wrapper):
             os = self.osf(wrapper)
-            print(f'[+] {os}')
+            print(f'[+] {wrapper} - {os}')
                 
     def _should_try(self, wrapper: PacketWrapper) -> bool:
         """
@@ -96,7 +96,6 @@ class SessionHandler:
             str: OS of the host inside wrapper.
         """
         signature = wrapper.to_sig()
-        print(f'[+] Crafted a TCP signature: {signature.raw()}')
 
         for os, signatures in OSF_DATABASE.iter_tcp():
             for db_signature in map(lambda s: TCPSignature.from_str(s), signatures):

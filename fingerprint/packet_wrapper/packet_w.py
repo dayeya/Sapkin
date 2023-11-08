@@ -132,6 +132,9 @@ class PacketWrapper:
         ip_layer  = self.packet.getlayer(cls=IP)
         tcp_layer = self.packet.getlayer(cls=TCP)
 
+        if ip_layer.flags & HEXA[Flags.DF_SET]:
+            special_flags.append(Flags.DF_SET)
+        
         if ip_layer.flags & HEXA[Flags.DF_SET] and ip_layer.id:
             special_flags.append(Flags.DF_SET_NON_ZERO_ID)  
 
@@ -167,6 +170,7 @@ class PacketWrapper:
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
 
+        # Returns QUIRKS
         return special_flags
     
     def mtu_sig(self) -> MTUSignature:
@@ -204,18 +208,18 @@ class PacketWrapper:
         ittl = self._guess_ittl()
         
         # Handle options.
-        tcp_options_list = tcp_layer.options 
+        tcp_options_list = tcp_layer.options
         tcp_options_dict = self._tcp_options()
         olen = len(ip_layer.options)
         
         # tcp options fields.
-        mss   = tcp_options_dict.get(TCPOptions.MSS, TCPSignature.MSS_DEFAULT)
-        scale = tcp_options_dict.get(TCPOptions.WINDOW_SCALE, TCPSignature.WINDOW_SCALE_DEFAULT)
+        mss   = tcp_options_dict.get(TCPOptions.convert(TCPOptions.MSS), TCPSignature.MSS_DEFAULT)
+        scale = int(tcp_options_dict.get(TCPOptions.convert(TCPOptions.WINDOW_SCALE), TCPSignature.WINDOW_SCALE_DEFAULT))
         window_size = tcp_layer.window
         
-        options_layout = ':'.join([TCPOptions.convert(option[0]) for option in tcp_options_list])
-        special_flags  = ':'.join(self._get_special_flags())
-        payload_size = len(tcp_layer.payload)
+        options_layout = ','.join([TCPOptions.convert(option[0]) for option in tcp_options_list])
+        special_flags  = ','.join(self._get_special_flags())
+        payload_size = str(len(tcp_layer.payload))
         
         return TCPSignature(
             version,

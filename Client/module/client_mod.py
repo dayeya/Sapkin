@@ -2,6 +2,7 @@ import os
 import sys
 import pickle
 from socket import *
+from .syn import SynHandler
 
 try: 
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -13,7 +14,6 @@ except ModuleNotFoundError as e:
 
 ADDRESS = ('localhost', 60000)
 
-
 class Module:
     
     UTF = "utf-8"
@@ -23,20 +23,24 @@ class Module:
         """
         Client Module object.
         """
-        
-        # Server sock, sends requests to the SERVER.
         self.server_sock = socket(AF_INET, SOCK_STREAM)
         self.server_sock.connect(ADDRESS)
+        self._syn_handler = SynHandler()
         
         # Socket for regular communication.
         self.client_sock = socket(AF_INET, SOCK_STREAM)
-
+        
+    def _stop_syn(self) -> None:
+        """
+        Stops sending syn packets to the server.
+        """
+        self._syn_handler.join()
+    
     def receive(self) -> Document:
         """
         Receives data from the server.
         :return: Document.
         """
-        
         data = self.server_sock.recv(Module.BUFSIZE)
         if not data:
             raise Exception("Connection with the server has timed out.")
@@ -58,7 +62,6 @@ class Module:
     def send_data(self) -> None:
         """
         Handles the clients' communication with the server.
-        :return: None
         """
         
         print("[+] Connected to server!\n")
@@ -85,21 +88,3 @@ class Module:
             
             data = self.receive()
             print(f"[+] {data.payload}")
-
-    @staticmethod
-    def encode(data: str) -> bytes:
-        """
-        Encodes data into bytes
-        :param data:
-        :return: bytes representation of data.
-        """
-        return data.encode(Module.UTF)
-
-
-
-            
-    
-
-
-        
-
