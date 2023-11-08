@@ -53,6 +53,7 @@ class SessionHandler:
         """
         Listens to packet, targets TCP Hanhshakes, SYN, SYN_ACK packets.
         """
+        print(conf.ifaces)
         
         self._running = True
         print("[+] Handler is listening!")

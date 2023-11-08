@@ -14,6 +14,15 @@ class MTUSignature:
         """
         self.link = link
         self.mtu = mtu
+
+    def format(self) -> str:
+        """
+        Will format self into a specific str.
+
+        Returns:
+            str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
+        """
+        return f'{self.link}:{self.mtu}'
         
     def raw(self) -> str:
         """

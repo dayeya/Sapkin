@@ -4,7 +4,7 @@ from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
 from scapy.interfaces import NetworkInterface
 from scapy.layers.http import HTTPRequest, HTTPResponse
-
+import psutil
 from ..signatures import TCPSignature, TCPOptions, Flags
 from ..signatures import MTUSignature
 from ..signatures import HTTPSignature
@@ -131,18 +131,15 @@ class PacketWrapper:
         special_flags: List[str] = []
         ip_layer  = self.packet.getlayer(cls=IP)
         tcp_layer = self.packet.getlayer(cls=TCP)
-        
+
         if ip_layer.flags & HEXA[Flags.DF_SET]:
             special_flags.append(Flags.DF_SET)
-        
+
         if ip_layer.flags & HEXA[Flags.DF_SET] and ip_layer.id:
             special_flags.append(Flags.DF_SET_NON_ZERO_ID)  
              
-        if ip_layer.flags & HEXA[Flags.DF_SET] and not ip_layer.id:
+        if not ip_layer.flags & HEXA[Flags.DF_SET] and not ip_layer.id:
             special_flags.append(Flags.DF_NOT_SET_ID_ZERO)
-                    
-        if ip_layer.flags & HEXA[Flags.MZERO]:
-            special_flags.append(Flags.MZERO)
             
         if tcp_layer.flags & (Flags.CWR | Flags.ECE): 
             special_flags.append(Flags.ECN)
@@ -150,22 +147,23 @@ class PacketWrapper:
         if ip_layer.version != 4:
             if ip_layer.version & 0xFFFF:
                 special_flags.append(Flags.NON_ZERO_FLOW_ID)
-                
-        if tcp_layer.seq == 0:
+        
+        # Sequence number isnt 0.
+        if not tcp_layer.seq:
             special_flags.append(Flags.ZERO_SEQ)
 
         if tcp_layer.flags & Flags.ACK and tcp_layer.ack > 0:
             special_flags.append(Flags.ACK_ZERO_FLAG_SET)
-        
-        if tcp_layer.flags & Flags.ACK and tcp_layer.ack == 0:
+        else:
             special_flags.append(Flags.NON_ZERO_POSITIVE_ACK)
-  
+        
+        # URG check.    
         if tcp_layer.flags & Flags.URG:
             special_flags.append(Flags.URG_FLAG_SET)
         else:
-            if tcp_layer.urgptr > 0:
-                special_flags.append(Flags.NON_ZERO_URG_NOT_SET)
-    
+            special_flags.append(Flags.NON_ZERO_URG_NOT_SET)
+        
+        # PSH check.    
         if tcp_layer.flags & Flags.PSH:
             special_flags.append(Flags.PUSH_FLAG_SET)
 
@@ -239,3 +237,16 @@ class PacketWrapper:
             str: String of self.packet
         """
         return self.packet.summary()
+
+    def create_mtu_signature(self) -> MTUSignature:
+
+        link = self.packet.sniffed_on
+        print("packet link: ", link)
+        mtu_val = -1
+        try:
+            mtu_val = psutil.net_if_stats()[link].mtu
+        except Exception as e:
+            print(e, " has occured")
+        print("MTU VALUE: ", mtu_val)
+        #mtu sig  = link | mtu
+        mtu_sig = MTUSignature(link, mtu_val)
