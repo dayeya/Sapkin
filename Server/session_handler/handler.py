@@ -96,6 +96,8 @@ class SessionHandler:
             str: OS of the host inside wrapper.
         """
         signature = wrapper.to_sig()
+        mtu_signature = wrapper.mtu_sig()
+        print(f'[+] Crafted an MTU signature: {mtu_signature.raw()}')
         print(f'[+] Crafted a TCP signature: {signature.raw()}')
 
         for os, signatures in OSF_DATABASE.iter_tcp():

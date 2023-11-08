@@ -48,6 +48,10 @@ class PacketWrapper:
             p (ScapyPacket): packet we sniffed.
         """
         self.packet = p.copy()
+        """
+        There is a problem with the copy() function which causes it to not copy every field correctly (like the sniffed_on field)
+        """
+        self.packet.sniffed_on = p.sniffed_on
         
     def to_sig(self) -> Signature:
         """
@@ -176,19 +180,21 @@ class PacketWrapper:
         Returns:
             MTUSignature: MTUSignature.
         """
+
         mtu_value: int = -1
         link: Union[NetworkInterface, str] = self.sniffed_link() # Interface name.
         try:
-            mtu_value = INTERFACES[link].mtu                            
-            return MTUSignature(link, mtu_value)
-        
-        # Catch non-existent interfaces.
+            if self.check_tcp():
+                op = self._tcp_options()
+                mtu_value = op["mss"] + len(self.packet[TCP])
+                print("NIIIIIIIIIIIIIIIIIIIIIIIIIIIIIKKKKKEEEEEEEEEEEEEEEEE ", link, mtu_value)
+                return MTUSignature(link, [int(mtu_value)])
         except Exception as e:
             print(f'[!] Error: {e}')
-        
-        finally:
-            # Blank MTUSignature.
-            return MTUSignature()
+            mtu_value = INTERFACES[link].mtu
+            print("MMMMMMMMMMMMTTTTTTTTTTTTTTTTTTTUUUUUUUUUUUUUUUUUUUUUUUUUUU ", link, mtu_value)
+            return MTUSignature(link, mtu_value)
+        return  MTUSignature()
     
     def tcp_sig(self) -> TCPSignature:
         """
