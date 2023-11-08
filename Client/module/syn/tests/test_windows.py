@@ -47,4 +47,4 @@ class WindowsTest:
         
         for t in tests:
             t.send_fuzzy_syn()
-        print('[+] Sent all fuzyy syn packets!')
+        print('[+] Sent all fuzzy syn packets!')
