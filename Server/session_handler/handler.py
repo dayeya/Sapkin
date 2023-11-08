@@ -3,7 +3,6 @@ import sys
 from scapy.all import *
 from scapy.all import conf
 from threading import Thread
-
 from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
 
@@ -13,17 +12,20 @@ try:
     
     from fingerprint import Flags
     from fingerprint import PacketWrapper
+    from database import OSF_DATABASE
     
 except ModuleNotFoundError as e:
-    raise Exception("Check project dir as fingerprint was not found.")
+    raise e
 
 conf.verbose = 0
 conf.sniff_promisc = 0
-IFACE = "Software Loopback Interface 1"
+
 DST_PORT = 60000
 PACKET_AT_A_TIME = 1
+FILTER = f"tcp and dst port {DST_PORT}"
+IFACE  = f"Software Loopback Interface 1"
 
-class SessionHandler(Thread):
+class SessionHandler:
     
     def __init__(self) -> None:
         """
@@ -54,15 +56,12 @@ class SessionHandler(Thread):
         print(conf.ifaces)
         
         self._running = True
-        print("Handler is listening!")
+        print("[+] Handler is listening!")
         
         while self._running:
-            self._packets = sniff(count=PACKET_AT_A_TIME, filter="tcp", iface=IFACE, prn=self.packet_handler)
+            self._packets = sniff(count=PACKET_AT_A_TIME, filter=FILTER, iface=IFACE, prn=self.packet_handler)
      
     def packet_handler(self, packet: ScapyPacket) -> None:
-        """
-        Add packet handling.
-        """
         wrapper = PacketWrapper(packet)
         print("MTU sig: ",wrapper.create_mtu_signature())
         if self._should_discover(wrapper):
@@ -71,7 +70,7 @@ class SessionHandler(Thread):
             print(f'{signature.format()}')
             
                 
-    def _should_discover(self, wrapper: PacketWrapper) -> bool:
+    def _should_try(self, wrapper: PacketWrapper) -> bool:
         """
         Check if a packet should be fingerprinted.
 
@@ -84,7 +83,23 @@ class SessionHandler(Thread):
         if not wrapper.check_tcp():
             return False
         
-        # if p has synor syn + ack on.
+        # if p has syn or syn + ack on.
         tcp_layer = wrapper.packet.getlayer(cls=TCP)
         return (tcp_layer.flags & Flags.SYN) or (tcp_layer.flags & Flags.SYN 
                                              and tcp_layer.flags & Flags.ACK)
+        
+    def osf(self, wrapper: PacketWrapper) -> str:
+        """
+        OS fingerprinting.
+
+        Args:
+            wrapper (PacketWrapper): PacketWrapper
+
+        Returns:
+            str: OS of the host inside wrapper.
+        """
+        tcp_data = OSF_DATABASE.iter_tcp()
+        for oS in tcp_data:
+           print(oS) 
+           
+        return "Some OS :/"

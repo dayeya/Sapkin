@@ -1,4 +1,4 @@
-from loaders.loader import Loader, craft_json_path
+from .loader import Loader, craft_json_path
 
 class MTULoader(Loader):
     
