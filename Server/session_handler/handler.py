@@ -10,7 +10,7 @@ try:
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
     sys.path.append(parent_dir)
     
-    from fingerprint import Flags
+    from fingerprint import MTUSignature, TCPSignature, Flags
     from fingerprint import PacketWrapper
     from database import OSF_DATABASE
     
@@ -63,9 +63,8 @@ class SessionHandler:
     def packet_handler(self, packet: ScapyPacket) -> None:
         wrapper = PacketWrapper(packet)
         if self._should_try(wrapper):
-            print(f"[+] Found SYN or SYN_ACK src: {wrapper.packet[IP].src}, to: {wrapper.packet[TCP].dport}")
-            os = self.finger_print(wrapper)
-            print(os)
+            os = self.osf(wrapper)
+            print(f'[+] {os}')
                 
     def _should_try(self, wrapper: PacketWrapper) -> bool:
         """
@@ -82,8 +81,10 @@ class SessionHandler:
         
         # if p has syn or syn + ack on.
         tcp_layer = wrapper.packet.getlayer(cls=TCP)
-        return (tcp_layer.flags & Flags.SYN) or (tcp_layer.flags & Flags.SYN 
-                                             and tcp_layer.flags & Flags.ACK)
+        syn = tcp_layer.flags & Flags.SYN
+        ack = tcp_layer.flags & Flags.ACK
+        
+        return syn or (syn and ack)
         
     def osf(self, wrapper: PacketWrapper) -> str:
         """
@@ -95,8 +96,11 @@ class SessionHandler:
         Returns:
             str: OS of the host inside wrapper.
         """
-        tcp_data = OSF_DATABASE.iter_tcp()
-        for oS in tcp_data:
-           print(oS) 
-           
+        signature = wrapper.to_sig()
+        print(f'[+] Crafted a TCP signature: {signature.raw()}')
+
+        for os, signatures in OSF_DATABASE.iter_tcp():
+            for db_signature in [TCPSignature.from_str(s) for s in signatures]:
+                if signature == db_signature:
+                    return os
         return "Some OS :/"

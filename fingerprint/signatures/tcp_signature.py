@@ -2,6 +2,7 @@ from typing import List, TypeVar
 
 # version fields can be 4, 6 or ALL.
 IP_Version = TypeVar("IP_Version", int, str)
+TCPSig = TypeVar("TCPSig", bound='TCPSignature')
 
 class Flags:
     # Core TCP flags.
@@ -50,6 +51,7 @@ class TCPOptions:
         "TS": "ts"
     }
     
+    @staticmethod
     def convert(option: str) -> str:
         """
         Converts an option string into p0f signature format.
@@ -101,8 +103,8 @@ class TCPSignature:
         self.options = options_layout if options_layout else []
         self.flags = special_flags if special_flags else {}
         self.payload_size = payload_size
-        
-    def format(self) -> str:
+    
+    def raw(self) -> str:
         """
         Will format self into a specific str.
 
@@ -111,6 +113,64 @@ class TCPSignature:
         """
         return f'{self.version}:{self.ttl}:{self.op_len}:{self.mss}:' \
                f'{self.win_size},{self.scale}:{self.options}:{self.flags}:{self.payload_size}'
+               
+    def fields(self) -> str:
+        """
+        Returns:
+            str: ver:ittl:op_len:mss:win_size,scale:options:flags:payload_size
+        """
+        return self.version, self.ttl, self.op_len, self.mss, \
+               self.win_size, self.scale, self.options, self.flags, self.payload_size
+               
+    def __eq__(self, other) -> bool:
+        """
+        Args:
+            other (str): tcp db signature.
+
+        Returns:
+            bool: is self equal to sig.
+        """
+        if isinstance(other, TCPSignature): 
+            return (
+                (self.version == other.version or other.version == 'ALL') and
+                (self.mss == other.mss or other.mss == 'ALL') and
+                self.ttl == other.ttl and
+                self.op_len == other.op_len and
+                self.win_size == other.win_size and
+                self.scale == other.scale and
+                self.options == other.options and 
+                self.flags == other.flags and
+                self.payload_size == other.payload_size
+            )
+        return False
+    
+    @staticmethod
+    def from_str(sig: str) -> TCPSig:
+        """
+        Builds a TCPSignature from sig.
+
+        Args:
+            sig (str): db entry.
+
+        Returns:
+            TCPSignature: A new TCPSignature.
+        """
+        # Unpack the signature.
+        version, ittl, op_len, mss, ws_pair, \
+        options_layout, special_flags, payload_size = tuple(sig.split(":"))
+        win_size, scale = ws_pair.split(',')
+        
+        return TCPSignature(
+            version,
+            ittl,
+            op_len,
+            mss,
+            win_size,
+            scale,
+            options_layout,
+            special_flags,
+            payload_size
+        )
         
     def __str__(self) -> str:
         """

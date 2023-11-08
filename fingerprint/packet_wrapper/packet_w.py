@@ -1,6 +1,8 @@
+import psutil
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
+from scapy.interfaces import NetworkInterface
 from scapy.layers.http import HTTPRequest, HTTPResponse
 
 from ..signatures import TCPSignature, TCPOptions, Flags
@@ -11,6 +13,9 @@ from typing import Union
 Signature = Union[TCPSignature, MTUSignature, HTTPSignature]
 
 UTF = 'utf-8'
+INTERFACES = psutil.net_if_stats()
+
+# Hexa valuse to & with flags.
 HEXA: dict[str: bytes] = {
         Flags.DF_SET                      : 0x00000002, 
         Flags.DF_SET_NON_ZERO_ID          : 0x00000004, 
@@ -19,17 +24,17 @@ HEXA: dict[str: bytes] = {
         Flags.MZERO                       : 0x00000010, 
         Flags.NON_ZERO_FLOW_ID            : 0x00000020,
         
-        Flags.ZERO_SEQ                    : 0x00001000, 
-        Flags.NON_ZERO_POSITIVE_ACK       : 0x00002000, 
-        Flags.ACK_ZERO_FLAG_SET           : 0x00004000, 
-        Flags.NON_ZERO_URG_NOT_SET        : 0x00008000, 
-        Flags.URG_FLAG_SET                : 0x00010000, 
+        Flags.ZERO_SEQ                    : 0x00001000,
+        Flags.NON_ZERO_POSITIVE_ACK       : 0x00002000,
+        Flags.ACK_ZERO_FLAG_SET           : 0x00004000,
+        Flags.NON_ZERO_URG_NOT_SET        : 0x00008000,
+        Flags.URG_FLAG_SET                : 0x00010000,
         Flags.PUSH_FLAG_SET               : 0x00020000,
             
-        Flags.ZERO_OWN_TIMESTAMP          : 0x0100000, 
-        Flags.NON_ZERO_TIMESTAMP_INIT_SYN : 0x0200000,  
-        Flags.NON_ZERO_DATA               : 0x0400000, 
-        Flags.EXCESSIVE_WSCALE            : 0x0800000, 
+        Flags.ZERO_OWN_TIMESTAMP          : 0x0100000,
+        Flags.NON_ZERO_TIMESTAMP_INIT_SYN : 0x0200000,
+        Flags.NON_ZERO_DATA               : 0x0400000,
+        Flags.EXCESSIVE_WSCALE            : 0x0800000,
         Flags.MALFORMED_OP                : 0x1000000
 }
 
@@ -43,6 +48,27 @@ class PacketWrapper:
             p (ScapyPacket): packet we sniffed.
         """
         self.packet = p.copy()
+        
+    def to_sig(self) -> Signature:
+        """
+        Creates the correct signature of self.
+
+        Returns:
+            Signature: Either 
+        """
+        
+        # A Vanilla TCP packet.
+        if self.check_tcp():
+            return self.tcp_sig()
+        
+    def sniffed_link(self) -> Union[NetworkInterface, str]:
+        """
+        Get the .sniffed_on attribute.
+
+        Returns:
+            Union[NetworkInterface, str]: NetworkInterface or str.
+        """
+        return self.packet.sniffed_on
 
     def check_tcp(self) -> bool:
         """
@@ -85,16 +111,18 @@ class PacketWrapper:
             int: guess of ittl of self._packet.
         """
         cur_ttl = self.packet[IP].ttl
-        if cur_ttl <= 32: return 32
-        if cur_ttl <= 64: return 64
-        if cur_ttl <= 128: return 128
+        os_ittl_ranges = (32, 64, 128)
         
+        for guessed in os_ittl_ranges:
+            if cur_ttl <= guessed:
+                return guessed
+            
         # last OS default is 255.
         return 255
     
     def _get_special_flags(self) -> List[str]:
         """
-        Scan the packet and identifies its special flags (IP, TCP) headers.
+        Scans the packet and identifies its special flags (IP, TCP) headers.
         Note: last 4 special flags arent urgent to implement, maybe in the future.
         
         Returns:
@@ -119,7 +147,6 @@ class PacketWrapper:
         if tcp_layer.flags & (Flags.CWR | Flags.ECE): 
             special_flags.append(Flags.ECN)
             
-        # Will not add flow as p0f doesnt utilize this in this context.
         if ip_layer.version != 4:
             if ip_layer.version & 0xFFFF:
                 special_flags.append(Flags.NON_ZERO_FLOW_ID)
@@ -143,8 +170,29 @@ class PacketWrapper:
             special_flags.append(Flags.PUSH_FLAG_SET)
 
         return special_flags
+    
+    def mtu_sig(self) -> MTUSignature:
+        """
+        Creates an mtu signature of self.
+
+        Returns:
+            MTUSignature: MTUSignature.
+        """
+        mtu_value: int = -1
+        link: Union[NetworkInterface, str] = self.sniffed_link()
+        try:
+            mtu_value = INTERFACES[link].mtu                            
+            return MTUSignature(
+                link, mtu_value
+                )
+        except Exception as e:
+            print(f'[!] Error: {e}')
         
-    def create_tcp_signature(self) -> TCPSignature:
+        finally:
+            # Blank MTUSignature.
+            return MTUSignature()
+    
+    def tcp_sig(self) -> TCPSignature:
         """
         Creates a TCP signature from self
 
@@ -182,7 +230,7 @@ class PacketWrapper:
             special_flags,
             payload_size
         )
-        
+    
     def __str__(self) -> str:
         """
         Constructs a PacketWrapper string representation.
