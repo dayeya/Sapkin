@@ -45,10 +45,6 @@ class SynHandler(Thread):
             interval (int, optional): Interval of sending. Defaults to 30.
         """
         def current_time() -> float | Any:
-            """
-            Returns:
-                float | Any: current global time.
-            """
             return time.time()
         
         last_registered = current_time()
