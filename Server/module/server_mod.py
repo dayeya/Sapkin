@@ -29,9 +29,9 @@ class Module:
         """
         self.clients = []
         self.main_sock = socket(AF_INET, SOCK_STREAM)
-        
+
+        # Thread for handling user threads and data.
         self.sessions_handler = SessionHandler()
-        self._sessions_thread = Thread(target=self.sessions_handler.listen)
         
     def start(self) -> None:
         """
@@ -40,9 +40,8 @@ class Module:
         self.main_sock.bind(ADDRESS)
         self.main_sock.listen(Module.ONLINE_CLIENT_BOUND)
         print(f"[+] Server is up!")
-        
-        # Start listener.
-        self._sessions_thread.start()
+
+        self.sessions_handler.start()
         
         while True:
             fp_server_sock, addr = self.main_sock.accept()
