@@ -33,7 +33,6 @@ class SessionHandler(Thread):
         """
         self._running = False
         super().__init__(target=self.listen)
-        self.start()
         
     def _is_listening(self) -> bool:
         """
