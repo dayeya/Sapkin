@@ -4,7 +4,6 @@ from scapy.layers.inet import IP, TCP
 from scapy.all import Packet as ScapyPacket
 from scapy.interfaces import NetworkInterface
 from scapy.layers.http import HTTPRequest, HTTPResponse
-import psutil
 from ..signatures import TCPSignature, TCPOptions, Flags
 from ..signatures import MTUSignature
 from ..signatures import HTTPSignature
@@ -42,15 +41,14 @@ class PacketWrapper:
     
     def __init__(self, p: ScapyPacket) -> None:
         """
-        PacketWrapper object, wraps p with special functions.
+        PacketWrapper object wraps p with special functions.
 
         Args:
             p (ScapyPacket): packet we sniffed.
         """
         self.packet = p.copy()
-        """
-        There is a problem with the copy() function which causes it to not copy every field correctly (like the sniffed_on field)
-        """
+
+        # .copy() doesnt copy .sniffed_on
         self.packet.sniffed_on = p.sniffed_on
         
     def to_sig(self) -> Signature:
