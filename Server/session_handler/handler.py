@@ -25,13 +25,15 @@ PACKET_AT_A_TIME = 1
 FILTER = f"tcp and dst port {DST_PORT}"
 IFACE  = f"Software Loopback Interface 1"
 
-class SessionHandler:
+class SessionHandler(Thread):
     
     def __init__(self) -> None:
         """
-        TCPListener object, listens to TCP connections with the server.
+        TCPListener object listens to TCP connections with the server.
         """
         self._running = False
+        super().__init__(target=self.listen)
+        self.start()
         
     def _is_listening(self) -> bool:
         """
