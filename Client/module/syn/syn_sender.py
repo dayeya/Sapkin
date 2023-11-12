@@ -35,6 +35,18 @@ class SynHandler(Thread):
             str: dst_ip
         """
         return self._dst_ip
+        
+    def _send_syn(self) -> None:
+        """
+        Sends a single syn packet.
+        """
+        syn = 'S'
+        ip  = IP(src=self.src_ip, dst=self.dst_ip)
+        tcp = TCP(dport=60000, flags=syn)
+
+        syn_packet = ip / tcp
+        self.sock.send(syn_packet)
+        print('[+] Syn sent!')
     
     def register_syn_per_interval(self, interval: int=30) -> None:
         """
@@ -52,15 +64,3 @@ class SynHandler(Thread):
             if ct - last_registered >= interval:
                 last_registered = ct
                 self._send_syn()
-
-    def _send_syn(self) -> None:
-        """
-        Sends a single syn packet.
-        """
-        syn = 'S'
-        ip  = IP(src=self.src_ip, dst=self.dst_ip)
-        tcp = TCP(dport=60000, flags=syn)
-
-        syn_packet = ip / tcp
-        self.sock.send(syn_packet)
-        print('[+] Syn sent!')
