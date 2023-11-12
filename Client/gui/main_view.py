@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from customtkinter.windows.widgets.font import CTkFont
 
 class ScrollableClients(ctk.CTkScrollableFrame):
     
@@ -7,21 +8,31 @@ class ScrollableClients(ctk.CTkScrollableFrame):
         Scrollable Clients Frame.
 
         Args:
-            master (list): Arguments for custommization.
+            master (list): Arguments for customization.
         """
         super().__init__(master, **kwargs)
         self.label = ctk.CTkLabel(master=self, text='Online Clients')
         self.label.grid(row=0, column=0)
 
-class Logger:
-    pass
+class Logger(ctk.CTkScrollableFrame):
+    
+    def __init__(self, master, **kwargs) -> None:
+        """
+        Logger Frame.
 
-class View(ctk.CTk):
+        Args:
+            master (list): Arguments for customization.
+        """
+        super().__init__(master, **kwargs)
+        self.label = ctk.CTkLabel(master=self, text='Logger')
+        self.label.grid(row=0, column=0)
+
+class MainView(ctk.CTk):
     
     def __init__(self) -> None:
         """
         View object.
-        """
+        """  
         super().__init__()
         
         self.title("Sapkin Client")
@@ -29,7 +40,6 @@ class View(ctk.CTk):
         
         # Rows
         self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
         
         # Columns
         self.grid_columnconfigure(0, weight=1)
@@ -40,5 +50,11 @@ class View(ctk.CTk):
             fg_color='red'
         )
         
-        self._clients_logger.grid(column=0, sticky='ns')
+        self._logger = Logger(
+            master=self, 
+            fg_color='red'
+        )
         
+        self._clients_logger.grid(row=0, column=0, sticky='news')
+        self._logger.grid(row=0, column=1, sticky='news')
+    

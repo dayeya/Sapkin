@@ -12,10 +12,8 @@ class Client:
         :param mod:
         """
         self.gui = View()
-        self.gui.protocol('WM_DELETE_WINDOW', self.terminate)
-        
         self._main_thread = Module()
-        self._syn_thread = SynHandler()
+        self._syn_thread = SynHandler() 
         
     def start_syn(self) -> None:
         """
@@ -46,7 +44,6 @@ class Client:
         """
         Terminates the application.
         """
-        self.module.end()
         self._main_thread.join()
         
         # Close GUI.
@@ -57,6 +54,6 @@ if __name__ == "__main__":
     client = Client()
     
     client.start_main()
-    client.start_syn()
+    # client.start_syn()
     
     sys.exit(client.gui.mainloop())

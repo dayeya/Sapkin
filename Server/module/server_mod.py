@@ -45,9 +45,7 @@ class Module:
         
         while True:
             fp_server_sock, addr = self.main_sock.accept()
-            
-            # connection with the SERVER_SOCK of the client.
-            self.add_client(addr)
+
             fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
 
@@ -63,9 +61,8 @@ class Module:
             req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
             if not req or not isinstance(req, Document):
                 break
-
-            print(f'[+] Received: {req}')
-            if req.type.upper() == "ALL_USERS":
+            
+            elif req.type.upper() == "ALL_USERS":
                 response = Document("USERS", self.clients).serialize()
                 fp_client_sock.send(response)
 

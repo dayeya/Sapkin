@@ -1,1 +1,1 @@
-from .gui import View
+from .main_view import MainView
