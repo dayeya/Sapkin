@@ -29,7 +29,7 @@ class SessionHandler(Thread):
     
     def __init__(self) -> None:
         """
-        TCPListener object, listens to TCP connections with the server.
+        TCPListener object listens to TCP connections with the server.
         """
         self._running = False
         super().__init__(target=self.listen)

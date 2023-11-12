@@ -28,33 +28,28 @@ class Module:
         Server Modules object.
         """
         self.clients = []
-        self._main_sock = socket(AF_INET, SOCK_STREAM)
-        
+        self.main_sock = socket(AF_INET, SOCK_STREAM)
+
+        # Thread for handling user threads and data.
         self.sessions_handler = SessionHandler()
         
     def start(self) -> None:
         """
         Starts the server, listening to clients.
         """
-        self._main_sock.bind(ADDRESS)
-        self._main_sock.listen(Module.ONLINE_CLIENT_BOUND)
+        self.main_sock.bind(ADDRESS)
+        self.main_sock.listen(Module.ONLINE_CLIENT_BOUND)
         print(f"[+] Server is up!")
-        
+
         self.sessions_handler.start()
         
         while True:
-            fp_server_sock, addr = self._main_sock.accept()
+            fp_server_sock, addr = self.main_sock.accept()
             
             # connection with the SERVER_SOCK of the client.
             self.add_client(addr)
             fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
-    
-    def close(self) -> None:
-        """
-        Closes the server.
-        """
-        self._main_sock.close()
 
     def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
         """
