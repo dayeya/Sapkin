@@ -1,7 +1,6 @@
 import pickle
 from typing import Any
 
-
 class Document:
 
     def __init__(self, req_type: str = "MSG", payload: Any = None) -> None:
@@ -35,6 +34,9 @@ class Document:
         :return: bytes of self
         """
         return pickle.dumps(self)
+
+    def __hash__(self) -> str:
+        pass
 
     def __str__(self) -> str:
         """
