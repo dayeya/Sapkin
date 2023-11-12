@@ -3,6 +3,7 @@ import sys
 import pickle
 from socket import *
 from .syn import SynHandler
+from threading import Thread
 
 try: 
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -14,7 +15,7 @@ except ModuleNotFoundError as e:
 
 ADDRESS = ('localhost', 60000)
 
-class Module:
+class Module(Thread):
     
     UTF = "utf-8"
     BUFSIZE = 1024
@@ -25,16 +26,15 @@ class Module:
         """
         self.server_sock = socket(AF_INET, SOCK_STREAM)
         self.server_sock.connect(ADDRESS)
-        self._syn_handler = SynHandler()
-        
-        # Socket for regular communication.
         self.client_sock = socket(AF_INET, SOCK_STREAM)
         
-    def _stop_syn(self) -> None:
+        super().__init__(target=self.send_data)
+        
+    def end(self) -> None:
         """
-        Stops sending syn packets to the server.
+        Terminates the Module.
         """
-        self._syn_handler.join()
+        self.server_sock.close()
     
     def receive(self) -> Document:
         """
@@ -65,6 +65,7 @@ class Module:
         """
         
         print("[+] Connected to server!\n")
+        
         while True:
             request = ''
             client_msg = input("Type: ").upper()

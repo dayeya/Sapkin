@@ -1,5 +1,8 @@
-from module import Module
+from gui import View
+from module import Module, SynHandler
 
+import sys
+from threading import Thread
 
 class Client:
     
@@ -8,17 +11,52 @@ class Client:
         Client object.
         :param mod:
         """
-        self.module = Module()
-
-    def start(self) -> None:
+        self.gui = View()
+        self.gui.protocol('WM_DELETE_WINDOW', self.terminate)
+        
+        self._main_thread = Module()
+        self._syn_thread = SynHandler()
+        
+    def start_syn(self) -> None:
         """
-        Connects a client into the server.
-        :return: None
+        Starts the SynHandler.
         """
-        self.module.send_data()
+        self._syn_thread.start()
+            
+    def stop_syn(self) -> None:
+        """
+        Stops sending syn packets to the server.
+        """
+        self._syn_thread.join()  
 
+    def start_main(self) -> None:
+        """
+        Communication with the server.
+        """ 
+        self._main_thread.start()
+        
+    def stop_main(self) -> None: 
+        """
+        Stops main thread.
+        """
+        self._main_thread.join()
+        
+        
+    def terminate(self) -> None: 
+        """
+        Terminates the application.
+        """
+        self.module.end()
+        self._main_thread.join()
+        
+        # Close GUI.
+        self.gui.destroy()
+        
 
 if __name__ == "__main__":
     client = Client()
-    client.start()
-
+    
+    client.start_main()
+    client.start_syn()
+    
+    sys.exit(client.gui.mainloop())

@@ -9,7 +9,7 @@ IFACE  = f"Software Loopback Interface 1"
 
 class SynHandler(Thread):
     
-    def __init__(self, src: str="localhost", dst:str="localhost") -> None:
+    def __init__(self, src: str="localhost", dst: str="localhost") -> None:
         """
         SynHandler object.
         """
@@ -18,8 +18,7 @@ class SynHandler(Thread):
         self.sock = conf.L3socket(iface=IFACE)
         
         # Start sending syn packets.
-        super().__init__(target=self.register_syn_per_interval, args=(5, ))
-        self.start()
+        super().__init__(target=self.register_syn_per_interval)
         
     @property
     def src_ip(self) -> str:
@@ -44,11 +43,7 @@ class SynHandler(Thread):
         Args:
             interval (int, optional): Interval of sending. Defaults to 30.
         """
-        def current_time() -> float | Any:
-            """
-            Returns:
-                float | Any: current global time.
-            """
+        def current_time() -> float:
             return time.time()
         
         last_registered = current_time()
@@ -56,9 +51,6 @@ class SynHandler(Thread):
             ct = current_time()
             if ct - last_registered >= interval:
                 last_registered = ct
-                
-                # Send syn.
-                print('[+] Sending syn...')
                 self._send_syn()
 
     def _send_syn(self) -> None:

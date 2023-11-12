@@ -19,7 +19,7 @@ class Server:
         Closes the server.
         :return: None
         """
-        self.main_sock.close()
+        self.server_handler.close()
 
 if __name__ == "__main__":
     server = Server()
