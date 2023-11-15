@@ -1,4 +1,4 @@
-from gui import View
+from gui import MainView, View
 from module import Module, SynHandler
 
 import sys
@@ -6,54 +6,40 @@ from threading import Thread
 
 class Client:
     
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
         """
         Client object.
         :param mod:
         """
-        self.gui = View()
-        self._main_thread = Module()
-        self._syn_thread = SynHandler() 
+        self.gui = MainView(name)
+        self.gui.protocol("WM_DELETE_WINDOW", self.terminate)
         
-    def start_syn(self) -> None:
-        """
-        Starts the SynHandler.
-        """
-        self._syn_thread.start()
-            
-    def stop_syn(self) -> None:
-        """
-        Stops sending syn packets to the server.
-        """
-        self._syn_thread.join()  
-
-    def start_main(self) -> None:
-        """
-        Communication with the server.
-        """ 
+        # Threads.
+        self._main_thread = Module(name)
+        self._syn_thread = SynHandler()
         self._main_thread.start()
+        # self._syn_thread.start()
         
-    def stop_main(self) -> None: 
-        """
-        Stops main thread.
-        """
-        self._main_thread.join()
+        self.gui.mainloop()
         
-        
-    def terminate(self) -> None: 
+    def terminate(self) -> None:
         """
-        Terminates the application.
+        Closes the client completely.
         """
-        self._main_thread.join()
-        
-        # Close GUI.
         self.gui.destroy()
         
+def sign_up() -> str:
+    """
+    Opens the sign up window.
+    """
+    gui = View()
+    gui.mainloop()
+    return gui.name
 
 if __name__ == "__main__":
-    client = Client()
-    
-    client.start_main()
-    # client.start_syn()
-    
-    sys.exit(client.gui.mainloop())
+    name = sign_up()
+    if name:
+        client = Client(name)
+        
+    # No input was given.
+    pass

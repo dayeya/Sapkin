@@ -20,10 +20,11 @@ class Module(Thread):
     UTF = "utf-8"
     BUFSIZE = 1024
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
         """
         Client Module object.
         """
+        print(f'{name} Opened a module!')
         self.server_sock = socket(AF_INET, SOCK_STREAM)
         self.server_sock.connect(ADDRESS)
         self.client_sock = socket(AF_INET, SOCK_STREAM)
@@ -35,6 +36,7 @@ class Module(Thread):
         Terminates the Module.
         """
         self.server_sock.close()
+        sys.exit(self.join())
     
     def receive(self) -> Document:
         """
@@ -58,6 +60,16 @@ class Module(Thread):
             raise Exception("Wasn't given a document, please try again!")
 
         return data
+    
+    def log_in(self) -> None:
+        # Update server.
+        encoded_req: bytes = Document('LOG_IN', self.name).serialize()
+        self.server_sock.send(encoded_req)
+        
+        # Get ACK.
+        data = self.receive()
+        if data.type != 'ACK': 
+            raise Exception("Login was not complete!")
     
     def send_data(self) -> None:
         """

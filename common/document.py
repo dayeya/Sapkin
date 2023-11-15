@@ -35,9 +35,6 @@ class Document:
         """
         return pickle.dumps(self)
 
-    def __hash__(self) -> str:
-        pass
-
     def __str__(self) -> str:
         """
         Useful for debugging.

@@ -45,7 +45,6 @@ class Module:
         
         while True:
             fp_server_sock, addr = self.main_sock.accept()
-
             fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
 
@@ -58,36 +57,47 @@ class Module:
         """
         response: bytes = b''
         while True:
-            req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
-            if not req or not isinstance(req, Document):
-                break
-            
-            elif req.type.upper() == "ALL_USERS":
-                response = Document("USERS", self.clients).serialize()
-                fp_client_sock.send(response)
+            try:
+                req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
+                if not req or not isinstance(req, Document):
+                    break
+                
+                if req.type.upper() == 'LOG_IN':
+                    
+                    # Add client.
+                    self.add_client(req.payload, fp_client_sock)
+                    
+                    response = Document('ACK').serialize()
+                    fp_client_sock.send(response)
+                
+                elif req.type.upper() == "ALL_USERS":
+                    response = Document("USERS", self.clients).serialize()
+                    fp_client_sock.send(response)
 
-            elif req.type.upper() == "SCAN":
-                addr = fp_client_sock.getsockname()
-                client_open_ports = self._scan_client_ports(addr, initial_port=1, last_port=Module.MAX_PORTS)
-                response = Document("PORTS", client_open_ports).serialize()
-                fp_client_sock.send(response)
+                elif req.type.upper() == "SCAN":
+                    addr = fp_client_sock.getsockname()
+                    client_open_ports = self._scan_client_ports(addr, initial_port=1, last_port=Module.MAX_PORTS)
+                    response = Document("PORTS", client_open_ports).serialize()
+                    fp_client_sock.send(response)
 
-            elif req.type.upper() == "FP":
-                print(f'[+] Passive finger printing of: {req.payload}.')
+                elif req.type.upper() == "FP":
+                    print(f'[+] Passive finger printing of: {req.payload}.')
 
-            else:
-                response = Document("ECHO", f"Echoed! {req.payload}").serialize()
-                fp_client_sock.send(response)
-            
+                else:
+                    response = Document("ECHO", f"Echoed! {req.payload}").serialize()
+                    fp_client_sock.send(response)
+            except:
+                print("Connection aborted! closing session with client.")
+                break   
         fp_client_sock.close()
     
-    def add_client(self, client_addr: tuple) -> None:
+    def add_client(self, name: str, sock: socket) -> None:
         """
         Adds clients into online_clients.
         :param client_addr:
         :return: None
         """
-        self.clients.append(client_addr)
+        self.clients[name] = sock
 
     @staticmethod
     def _check_port(ports_lock: Lock, ports_list: list, addr: tuple) -> None:
