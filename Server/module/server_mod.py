@@ -46,10 +46,10 @@ class Module:
         
         while True:
             fp_server_sock, addr = self.main_sock.accept()
-            fp_server_sock_connection = Thread(target=self.handle_fp_client, args=(fp_server_sock, addr))
+            fp_server_sock_connection = Thread(target=self._handle_client, args=(fp_server_sock, addr))
             fp_server_sock_connection.start()
 
-    def handle_fp_client(self, fp_client_sock: socket, addr: tuple) -> None:
+    def _handle_client(self, client_sock: socket, addr: tuple) -> None:
         """
         Handles the connections of a client.
         :param fp_client_sock:
@@ -58,17 +58,24 @@ class Module:
         """
         while True:
             try:
-                req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
+                req = pickle.loads(client_sock.recv(Module.BUFSIZE))
                 if not req or not isinstance(req, Document):
                     break
-                self._handle_doc(req)
-            except:
+                self._handle_doc(req, client_sock, addr)
+            except ConnectionAbortedError:
                 print("[!] Connection aborted! closing session with client.")
                 break   
             
-        fp_client_sock.close()
+        client_sock.close()
         
     def _handle_doc(self, req: Document, sock: socket, addr: tuple) -> None:
+        """
+        Handles all requests.
+        Args:
+            req (Document): Document.
+            sock (socket): Clients socket.
+            addr (tuple): Address.
+        """
         if req.type.upper() == 'LOG_IN':
             response = Document('ACK').serialize()
             sock.send(response)

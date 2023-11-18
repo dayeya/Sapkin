@@ -94,6 +94,6 @@ class Module(Thread):
         msg = data.type
         print(f'msg: {msg}, payload: {payload}')
         
-        if msg == 'NEW_USER' and (name := payload[0]) != self._name:
-            self._controller.log_user(name=name, ip=payload[1])
+        if msg == 'NEW_USER':
+            self._controller.log_user(name=payload[0], ip=payload[1])
         
