@@ -3,7 +3,7 @@ from customtkinter.windows.widgets.font import CTkFont
 
 import os, sys
 from PIL import Image
-from utils import NO_COLOR, BLANK, ROOT_FOLDER
+from .utils import NO_COLOR, BLANK, ROOT_FOLDER
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 

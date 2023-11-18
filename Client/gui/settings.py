@@ -1,8 +1,8 @@
 import customtkinter as ctk
 from customtkinter.windows.widgets.font import CTkFont
 
-from navigation import NavBar
-from utils import NO_COLOR, BLANK
+from .navigation import NavBar
+from .utils import NO_COLOR, BLANK
 
 class Settings_Window(ctk.CTkFrame):
     

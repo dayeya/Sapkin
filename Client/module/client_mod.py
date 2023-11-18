@@ -20,16 +20,18 @@ class Module(Thread):
     UTF = "utf-8"
     BUFSIZE = 1024
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, controller, name: str) -> None:
         """
         Client Module object.
         """
-        print(f'{name} Opened a module!')
+        self._name = name
+        self._controller = controller
         self.server_sock = socket(AF_INET, SOCK_STREAM)
         self.server_sock.connect(ADDRESS)
-        self.client_sock = socket(AF_INET, SOCK_STREAM)
         
-        super().__init__(target=self.send_data)
+        # Register the name into the server.
+        self._login()
+        super().__init__(target=self.receive)
         
     def end(self) -> None:
         """
@@ -37,15 +39,33 @@ class Module(Thread):
         """
         self.server_sock.close()
         sys.exit(self.join())
-    
-    def receive(self) -> Document:
+        
+    def get_os(self, name) -> str:
+        encoded_req: bytes = Document('FP_USER', self._name).serialize()
+        self.server_sock.send(encoded_req)
+        
+    def _login(self) -> None: 
         """
-        Receives data from the server.
-        :return: Document.
+        Updates the server with the name.
+        Raises:
+            Exception: Login was not successfull.
+        """
+        encoded_req: bytes = Document('LOG_IN', self._name).serialize()
+        self.server_sock.send(encoded_req)
+        
+        data = self._recv()
+        if data.type != 'ACK':
+            raise Exception("[!] Unable to login.")
+    
+    def _recv(self) -> Document:
+        """
+        Receivs a Document.
+        Returns:
+            Document: Document.
         """
         data = self.server_sock.recv(Module.BUFSIZE)
         if not data:
-            raise Exception("Connection with the server has timed out.")
+            raise Exception("[!] Connection with the server has timed out.")
         
         # More data to receive.
         if len(data) == Module.BUFSIZE:
@@ -54,50 +74,26 @@ class Module(Thread):
                     data += self.server_sock.recv(Module.BUFSIZE)
                 except: 
                     break
-
+        
         data = pickle.loads(data)
         if not isinstance(data, Document):
-            raise Exception("Wasn't given a document, please try again!")
-
+            raise Exception("[!] Wasn't given a document, please try again!")
+        
         return data
     
-    def log_in(self) -> None:
-        # Update server.
-        encoded_req: bytes = Document('LOG_IN', self.name).serialize()
-        self.server_sock.send(encoded_req)
-        
-        # Get ACK.
-        data = self.receive()
-        if data.type != 'ACK': 
-            raise Exception("Login was not complete!")
-    
-    def send_data(self) -> None:
+    def receive(self) -> None:
         """
-        Handles the clients' communication with the server.
+        Receives data from the server.
+        :return: Document.
         """
-        
-        print("[+] Connected to server!\n")
-        
         while True:
-            request = ''
-            client_msg = input("Type: ").upper()
-
-            if client_msg == "STOP":
-                break
-
-            elif client_msg == "ALL_USERS":
-                request = "ALL_USERS"
-
-            elif client_msg == "SCAN":
-                request = "SCAN"
-
-            elif client_msg.startswith("FP"):
-                request, client_msg = client_msg.split(' ')
-            else:
-                request = "MSG"
-
-            encoded_req: bytes = Document(request, client_msg).serialize()
-            self.server_sock.send(encoded_req)
-            
-            data = self.receive()
-            print(f"[+] {data.payload}")
+            self._handle_reponse(self._recv())
+        
+    def _handle_reponse(self, data: Document) -> None:
+        payload = data.payload
+        msg = data.type
+        print(f'msg: {msg}, payload: {payload}')
+        
+        if msg == 'NEW_USER' and (name := payload[0]) != self._name:
+            self._controller.log_user(name=name, ip=payload[1])
+        

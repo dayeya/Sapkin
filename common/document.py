@@ -1,5 +1,5 @@
 import pickle
-from typing import Any
+from typing import Any, Self
 
 class Document:
 
@@ -27,6 +27,12 @@ class Document:
         :return: payload of self
         """
         return self._payload
+    
+    def __enter__(self) -> Any:
+        return self.payload
+    
+    def __exit__(self, type, value, tracebeck) -> None:
+        del self
 
     def serialize(self) -> bytes:
         """

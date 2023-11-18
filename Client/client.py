@@ -11,17 +11,22 @@ class Client:
         Client object.
         :param mod:
         """
-        self.gui = MainView(name)
+        self.gui = MainView(self, name)
         self.gui.protocol("WM_DELETE_WINDOW", self.terminate)
         
         # Threads.
-        self._main_thread = Module(name)
+        self._main_thread = Module(self, name)
         self._syn_thread = SynHandler()
+        
         self._main_thread.start()
-        # self._syn_thread.start()
-        
         self.gui.mainloop()
-        
+    
+    def get_os_by_name(self, name) -> None:
+        print(self._main_thread.get_os(name))
+    
+    def log_user(self, name, ip) -> None:
+        self.gui.log_user(name, ip) 
+    
     def terminate(self) -> None:
         """
         Closes the client completely.

@@ -31,6 +31,7 @@ class SessionHandler(Thread):
         """
         TCPListener object listens to TCP connections with the server.
         """
+        self._os_dict = {}
         self._running = False
         super().__init__(target=self.listen)
         
@@ -63,8 +64,7 @@ class SessionHandler(Thread):
     def packet_handler(self, packet: ScapyPacket) -> None:
         wrapper = PacketWrapper(packet)
         if self._should_try(wrapper):
-            os = self.osf(wrapper)
-            print(f'[+] {wrapper} - {os}')
+            self.osf(wrapper)
                 
     def _should_try(self, wrapper: PacketWrapper) -> bool:
         """

@@ -27,7 +27,8 @@ class Module:
         """
         Server Modules object.
         """
-        self.clients = []
+        self._socks = []
+        self._clients = {}
         self.main_sock = socket(AF_INET, SOCK_STREAM)
 
         # Thread for handling user threads and data.
@@ -55,49 +56,51 @@ class Module:
         :param addr:
         :return: None
         """
-        response: bytes = b''
         while True:
             try:
                 req = pickle.loads(fp_client_sock.recv(Module.BUFSIZE))
                 if not req or not isinstance(req, Document):
                     break
-                
-                if req.type.upper() == 'LOG_IN':
-                    
-                    # Add client.
-                    self.add_client(req.payload, fp_client_sock)
-                    
-                    response = Document('ACK').serialize()
-                    fp_client_sock.send(response)
-                
-                elif req.type.upper() == "ALL_USERS":
-                    response = Document("USERS", self.clients).serialize()
-                    fp_client_sock.send(response)
-
-                elif req.type.upper() == "SCAN":
-                    addr = fp_client_sock.getsockname()
-                    client_open_ports = self._scan_client_ports(addr, initial_port=1, last_port=Module.MAX_PORTS)
-                    response = Document("PORTS", client_open_ports).serialize()
-                    fp_client_sock.send(response)
-
-                elif req.type.upper() == "FP":
-                    print(f'[+] Passive finger printing of: {req.payload}.')
-
-                else:
-                    response = Document("ECHO", f"Echoed! {req.payload}").serialize()
-                    fp_client_sock.send(response)
+                self._handle_doc(req)
             except:
-                print("Connection aborted! closing session with client.")
+                print("[!] Connection aborted! closing session with client.")
                 break   
+            
         fp_client_sock.close()
+        
+    def _handle_doc(self, req: Document, sock: socket, addr: tuple) -> None:
+        if req.type.upper() == 'LOG_IN':
+            response = Document('ACK').serialize()
+            sock.send(response)
+            
+            # Add client to db.
+            with req as name:
+                self._clients[name] = addr
+                self._socks.append(sock)
+                self._broadcast_user(name)
     
-    def add_client(self, name: str, sock: socket) -> None:
+        elif req.type.upper() == 'ALL_USERS':
+            response = Document('USERS', self._clients).serialize()
+            sock.send(response)
+
+        elif req.type.upper() == 'SCAN':
+            client_open_ports = self._scan_client_ports(addr, initial_port=1, last_port=Module.MAX_PORTS)
+            response = Document('PORTS', client_open_ports).serialize()
+            sock.send(response)
+
+        elif req.type.upper() == 'FP_USER':
+            pass
+    
+    def _broadcast_user(self, name) -> None:
         """
-        Adds clients into online_clients.
-        :param client_addr:
-        :return: None
+        Updates all users.
+
+        Args:
+            name (str): Name of the new user.
         """
-        self.clients[name] = sock
+        doc: bytes = Document('NEW_USER', (name, self._clients[name][0])).serialize()
+        for sock in self._socks:
+            sock.send(doc)
 
     @staticmethod
     def _check_port(ports_lock: Lock, ports_list: list, addr: tuple) -> None:
@@ -131,17 +134,17 @@ class Module:
         """
         ip = client_addr[0]
         ports_lock = Lock()
-        threads: List[Thread] = []
-        open_ports: List[int] = []
+        threads: list = []
+        open_ports: list = []
         popular_ports = [
-            (21, "FTP"), 
-            (22, "SSH"), 
-            (25, "SMTP"), 
-            (80, "HTTP"), 
-            (443, "HTTPS"), 
-            (110, "POP3"), 
+            (21, "FTP"),
+            (22, "SSH"),
+            (25, "SMTP"),
+            (80, "HTTP"),
+            (443, "HTTPS"),
+            (110, "POP3"),
             (143, "IMAP"),
-            (3306, "MySQL"), 
+            (3306, "MySQL"),
             (5432, "PostgreSQL"), 
             (27017, "MongoDB")
         ]
